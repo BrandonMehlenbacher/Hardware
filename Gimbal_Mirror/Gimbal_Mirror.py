@@ -26,7 +26,7 @@ class Ui_GimbalMirrors(object):
         font = QFont()
         font.setPointSize(12)
         self.x_axis.setFont(font)
-        self.x_axis.setMaximum(100000)
+        self.x_axis.setMaximum(120000)
         self.x_axis.setOrientation(Qt.Horizontal)
         self.x_axis.setInvertedAppearance(False)
         self.x_axis.setInvertedControls(False)
@@ -35,7 +35,7 @@ class Ui_GimbalMirrors(object):
         self.y_axis = QSlider(self.gimbalControl)
         self.y_axis.setObjectName(u"y_axis")
         self.y_axis.setGeometry(QRect(20, 29, 31, 231))
-        self.y_axis.setMaximum(100000)
+        self.y_axis.setMaximum(120000)
         self.y_axis.setOrientation(Qt.Vertical)
         self.y_axis.setInvertedAppearance(True)
         self.y_axis.setInvertedControls(False)
@@ -55,14 +55,24 @@ class Ui_GimbalMirrors(object):
         self._x_motor = Motor(27505032)
         self._y_motor = Motor(27004551)
         self.retranslateUi(GimbalMirrors)
-
+        self.x_axis.valueChanged.connect(self.change_x_axis)
+        self.y_axis.valueChanged.connect(self.change_y_axis)
         QMetaObject.connectSlotsByName(GimbalMirrors)
     # setupUi
 
     def retranslateUi(self, GimbalMirrors):
         GimbalMirrors.setWindowTitle(QCoreApplication.translate("GimbalMirrors", u"MainWindow", None))
     # retranslateUi
-    def 
+    def change_x_axis(self):
+        x_axis_value = self.x_axis.value()/10000
+        self._x_motor.move_absolute(x_axis_value)
+    def change_y_axis(self):
+        y_axis_value = self.x_axis.value()/10000
+        self._y_motor.move_absolute(y_axis_value)
+
+    """
+    Need to add the camera next
+    """
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
