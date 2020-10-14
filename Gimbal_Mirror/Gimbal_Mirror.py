@@ -11,7 +11,7 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
+from Thorlabs_Motor.motor_control import Motor
 
 class Ui_GimbalMirrors(object):
     def setupUi(self, GimbalMirrors):
@@ -52,7 +52,8 @@ class Ui_GimbalMirrors(object):
         self.statusbar = QStatusBar(GimbalMirrors)
         self.statusbar.setObjectName(u"statusbar")
         GimbalMirrors.setStatusBar(self.statusbar)
-
+        self._x_motor = Motor(27505032)
+        self._y_motor = Motor(27004551)
         self.retranslateUi(GimbalMirrors)
 
         QMetaObject.connectSlotsByName(GimbalMirrors)
@@ -61,6 +62,7 @@ class Ui_GimbalMirrors(object):
     def retranslateUi(self, GimbalMirrors):
         GimbalMirrors.setWindowTitle(QCoreApplication.translate("GimbalMirrors", u"MainWindow", None))
     # retranslateUi
+    def 
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)

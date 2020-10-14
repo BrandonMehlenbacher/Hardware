@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 
 
-class motor(object):
+class Motor(object):
     """
     This class will be used for controlling the various motors we have in lab.
     This is originally designed to work with any apt motor that we currently use
