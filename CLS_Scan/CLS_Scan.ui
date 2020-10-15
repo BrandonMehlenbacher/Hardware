@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CLS_Scan</class>
+ <widget class="QMainWindow" name="CLS_Scan">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1120</width>
+    <height>870</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGraphicsView" name="waveform_chart">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>350</y>
+      <width>301</width>
+      <height>211</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="l_t_graph_2">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>590</y>
+      <width>301</width>
+      <height>211</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="waveform_chart_2">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>350</y>
+      <width>301</width>
+      <height>211</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QGraphicsView" name="l_t_graph">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>590</y>
+      <width>301</width>
+      <height>211</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_waveform_chart">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>330</y>
+      <width>191</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Waveform Chart 2</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_l_t_graph_2">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>570</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>L-T Graph 2</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_l_t_graph">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>570</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>L-T Graph</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_waveform_chart_2">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>330</y>
+      <width>191</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Waveform Chart</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="offset">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>280</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="phase">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>280</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="amplitude">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>230</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="frequency">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>230</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_amplitude">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>210</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Amplitude</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_frequency">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>210</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Frequency</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_offset">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>260</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Offset</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_phase">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>260</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Phase</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="doubleSpinBox">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>170</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_wait_time">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>150</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wait Time</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>280</y>
+      <width>111</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Stop</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="capture">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>220</y>
+      <width>111</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Capture</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="listWidget">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>170</y>
+      <width>201</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>Brandon Mehlenbacher</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Ceci</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Beau</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Lisa-Maria</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>150</y>
+      <width>101</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Who Are you</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>150</y>
+      <width>55</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cavity</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="daq_channel">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>240</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>220</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>DAQ Channel</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="single_channel_m">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>300</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="single_channel_m_2">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>300</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_single_channel_m">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>280</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Single Channel M</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_single_channel_m_2">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>280</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Single Channel M</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="cavity">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>170</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="saving_folder">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>106</y>
+      <width>661</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_saving_folder">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>80</y>
+      <width>181</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Saving Folder</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="filename_comments">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>170</y>
+      <width>161</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_filename_comments">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>150</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Filename Comments</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1120</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
