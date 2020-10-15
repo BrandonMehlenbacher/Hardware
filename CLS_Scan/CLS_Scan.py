@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'CLS_ScanBgOWTv.ui'
+## Form generated from reading UI file 'CLS_ScanMpcKZV.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.1
 ##
@@ -46,28 +46,28 @@ class Ui_CLS_Scan(object):
         self.label_waveform_chart_2.setGeometry(QRect(200, 330, 191, 16))
         self.offset = QDoubleSpinBox(self.centralwidget)
         self.offset.setObjectName(u"offset")
-        self.offset.setGeometry(QRect(520, 280, 62, 22))
+        self.offset.setGeometry(QRect(450, 280, 62, 22))
         self.phase = QDoubleSpinBox(self.centralwidget)
         self.phase.setObjectName(u"phase")
-        self.phase.setGeometry(QRect(620, 280, 62, 22))
+        self.phase.setGeometry(QRect(550, 280, 62, 22))
         self.amplitude = QDoubleSpinBox(self.centralwidget)
         self.amplitude.setObjectName(u"amplitude")
-        self.amplitude.setGeometry(QRect(520, 230, 62, 22))
+        self.amplitude.setGeometry(QRect(450, 230, 62, 22))
         self.frequency = QDoubleSpinBox(self.centralwidget)
         self.frequency.setObjectName(u"frequency")
-        self.frequency.setGeometry(QRect(620, 230, 62, 22))
+        self.frequency.setGeometry(QRect(550, 230, 62, 22))
         self.label_amplitude = QLabel(self.centralwidget)
         self.label_amplitude.setObjectName(u"label_amplitude")
-        self.label_amplitude.setGeometry(QRect(520, 210, 71, 16))
+        self.label_amplitude.setGeometry(QRect(450, 210, 71, 16))
         self.label_frequency = QLabel(self.centralwidget)
         self.label_frequency.setObjectName(u"label_frequency")
-        self.label_frequency.setGeometry(QRect(620, 210, 71, 16))
+        self.label_frequency.setGeometry(QRect(550, 210, 71, 16))
         self.label_offset = QLabel(self.centralwidget)
         self.label_offset.setObjectName(u"label_offset")
-        self.label_offset.setGeometry(QRect(520, 260, 71, 16))
+        self.label_offset.setGeometry(QRect(450, 260, 71, 16))
         self.label_phase = QLabel(self.centralwidget)
         self.label_phase.setObjectName(u"label_phase")
-        self.label_phase.setGeometry(QRect(620, 260, 71, 16))
+        self.label_phase.setGeometry(QRect(550, 260, 71, 16))
         self.doubleSpinBox = QDoubleSpinBox(self.centralwidget)
         self.doubleSpinBox.setObjectName(u"doubleSpinBox")
         self.doubleSpinBox.setGeometry(QRect(620, 170, 62, 22))
@@ -76,10 +76,10 @@ class Ui_CLS_Scan(object):
         self.label_wait_time.setGeometry(QRect(620, 150, 71, 16))
         self.pushButton = QPushButton(self.centralwidget)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(740, 280, 111, 51))
+        self.pushButton.setGeometry(QRect(740, 210, 111, 51))
         self.capture = QPushButton(self.centralwidget)
         self.capture.setObjectName(u"capture")
-        self.capture.setGeometry(QRect(740, 220, 111, 51))
+        self.capture.setGeometry(QRect(740, 280, 111, 51))
         self.listWidget = QListWidget(self.centralwidget)
         QListWidgetItem(self.listWidget)
         QListWidgetItem(self.listWidget)
@@ -126,6 +126,9 @@ class Ui_CLS_Scan(object):
         self.label_filename_comments = QLabel(self.centralwidget)
         self.label_filename_comments.setObjectName(u"label_filename_comments")
         self.label_filename_comments.setGeometry(QRect(700, 150, 131, 16))
+        self.start = QPushButton(self.centralwidget)
+        self.start.setObjectName(u"start")
+        self.start.setGeometry(QRect(620, 210, 111, 51))
         CLS_Scan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(CLS_Scan)
         self.menubar.setObjectName(u"menubar")
@@ -173,6 +176,7 @@ class Ui_CLS_Scan(object):
         self.label_single_channel_m_2.setText(QCoreApplication.translate("CLS_Scan", u"Single Channel M", None))
         self.label_saving_folder.setText(QCoreApplication.translate("CLS_Scan", u"Saving Folder", None))
         self.label_filename_comments.setText(QCoreApplication.translate("CLS_Scan", u"Filename Comments", None))
+        self.start.setText(QCoreApplication.translate("CLS_Scan", u"Start", None))
     # retranslateUi
 if __name__ == "__main__":
     import sys
@@ -182,3 +186,4 @@ if __name__ == "__main__":
     ui.setupUi(CLS_Scan)
     CLS_Scan.show()
     sys.exit(app.exec_())
+

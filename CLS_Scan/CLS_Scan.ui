@@ -109,7 +109,7 @@
    <widget class="QDoubleSpinBox" name="offset">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>450</x>
       <y>280</y>
       <width>62</width>
       <height>22</height>
@@ -119,7 +119,7 @@
    <widget class="QDoubleSpinBox" name="phase">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>550</x>
       <y>280</y>
       <width>62</width>
       <height>22</height>
@@ -129,7 +129,7 @@
    <widget class="QDoubleSpinBox" name="amplitude">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>450</x>
       <y>230</y>
       <width>62</width>
       <height>22</height>
@@ -139,7 +139,7 @@
    <widget class="QDoubleSpinBox" name="frequency">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>550</x>
       <y>230</y>
       <width>62</width>
       <height>22</height>
@@ -149,7 +149,7 @@
    <widget class="QLabel" name="label_amplitude">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>450</x>
       <y>210</y>
       <width>71</width>
       <height>16</height>
@@ -162,7 +162,7 @@
    <widget class="QLabel" name="label_frequency">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>550</x>
       <y>210</y>
       <width>71</width>
       <height>16</height>
@@ -175,7 +175,7 @@
    <widget class="QLabel" name="label_offset">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>450</x>
       <y>260</y>
       <width>71</width>
       <height>16</height>
@@ -188,7 +188,7 @@
    <widget class="QLabel" name="label_phase">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>550</x>
       <y>260</y>
       <width>71</width>
       <height>16</height>
@@ -225,7 +225,7 @@
     <property name="geometry">
      <rect>
       <x>740</x>
-      <y>280</y>
+      <y>210</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -238,7 +238,7 @@
     <property name="geometry">
      <rect>
       <x>740</x>
-      <y>220</y>
+      <y>280</y>
       <width>111</width>
       <height>51</height>
      </rect>
@@ -426,6 +426,19 @@
     </property>
     <property name="text">
      <string>Filename Comments</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="start">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>210</y>
+      <width>111</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Start</string>
     </property>
    </widget>
   </widget>
