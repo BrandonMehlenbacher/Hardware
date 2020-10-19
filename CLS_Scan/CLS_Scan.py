@@ -12,13 +12,13 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import nidaqmx as daq
-from Hardware.APD_Control.Thorlabs_APD import APD_Reader
+from Thorlabs_APD import APD_Reader
 #Eventually I will read these values in and save them before exiting so this becomes unnecessary but thats a pipe dream as of now
 initial_amplitude = 0.2
 initial_frequency = 10
 initial_offset = 0.200 #? I am not sure what this is supposed to be
 initial_phase = 270
-daq_channel = "Dev1/ao0"
+daq_channel = "Dev1/ao3"
 #
 class Ui_CLS_Scan(object):
     def setupUi(self, CLS_Scan):
@@ -155,15 +155,20 @@ class Ui_CLS_Scan(object):
         self.label_3.setGeometry(QRect(200, 220, 111, 16))
         #This is where the labels end        
         self.retranslateUi(CLS_Scan)
-        self._daq_output = daq.Task()
-        self._daq_ouput.ao_channels.add_ao_voltage_channel(daq_schannel) #at some point this should not be hardcoded
-        self._APD = APD_Reader(self.daq_channel.Value(),1000000/self.frequency.Value())
-        
+        self._daq_output = None
+        self._APD = None
+        self._daq_active = False
+        self._started = False
 
         QMetaObject.connectSlotsByName(CLS_Scan)
-
+        
         #this will be where all of my code will go
-
+        self.start.clicked.connect(self.start_acq)
+        self.stop.clicked.connect(self.stop_acq)
+        self.frequency.valueChanged.connect(self.value_change)
+        self.amplitude.valueChanged.connect(self.value_change)
+        self.offset.valueChanged.connect(self.value_change)
+        
 
     # setupUi
 
@@ -202,6 +207,29 @@ class Ui_CLS_Scan(object):
         self.label_filename_comments.setText(QCoreApplication.translate("CLS_Scan", u"Filename Comments", None))
         self.start.setText(QCoreApplication.translate("CLS_Scan", u"Start", None))
     # retranslateUi
+    def start_acq(self):
+        if not self._daq_active:
+            self._daq_active = True
+            self._daq_output = daq.Task()
+            self._daq_output.ao_channels.add_ao_func_gen_chan(physical_channel=daq_channel,type=daq.constants.FuncGenType.TRIANGLE,freq = self.frequency.value(),amplitude = self.amplitude.value(),offset = self.offset.value()) #at some point this should not be hardcoded
+            self._APD = APD_Reader(self.daq_channel.Value(),1000000/self.frequency.value())
+            self._daq_output.start()
+            self._APD.start_acquisition()
+            self.started = True
+    def stop_acq(self):
+        if self._daq_active and self._started:
+            self._daq_active = False
+            self._daq_output.stop()
+            self._daq_output.close()
+            self._APD.stop_acquisition()
+            self._APD.close_daq()
+            
+    def value_change(self):
+        if daq_active:
+            self._daq_output.stop()
+            self._daq_ouput.ao_channels.add_ao_func_gen_chan(daq_channel,type=daq.constants.FuncGenType.TRIANGLE,freq = self.frequency.value(),amplitude = self.amplitude.value(),offset = self.offset.value())
+            self._daq_output.start()
+
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
