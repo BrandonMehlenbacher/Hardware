@@ -158,6 +158,8 @@ class Ui_CLS_Scan(object):
         self.label_3.setGeometry(QRect(200, 220, 111, 16))
         #This is where the labels end        
         self.retranslateUi(CLS_Scan)
+        self.start.setEnabled(True)
+        self.stop.setEnabled(False)
         
 
         self._daq_output = None
@@ -230,6 +232,8 @@ class Ui_CLS_Scan(object):
             self._timer = QTimer()
             timing = (1/self.frequency.value())*1000*2
             self._timer.start(timing)
+            self.start.setEnabled(False)
+            self.stop.setEnabled(True)
             self.started = True
     def stop_acq(self):
         if self._daq_active and self._started:
@@ -239,6 +243,8 @@ class Ui_CLS_Scan(object):
             self._daq_output.close()
             self._APD.stop_acquisition()
             self._APD.close_daq()
+            self.start.setEnabled(True)
+            self.stop.setEnabled(False)
             
     def value_change(self):
         if daq_active:
