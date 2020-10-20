@@ -12,13 +12,16 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import nidaqmx as daq
+from nidaqmx.stream_writers import AnalogSingleChannelWriter
+from scipy.signal import sawtooth
 from Thorlabs_APD import APD_Reader
+
 #Eventually I will read these values in and save them before exiting so this becomes unnecessary but thats a pipe dream as of now
 initial_amplitude = 0.2
 initial_frequency = 10
 initial_offset = 0.200 #? I am not sure what this is supposed to be
 initial_phase = 270
-daq_channel = "Dev1/ao3"
+daq_channel = "Dev1/ao0"
 #
 class Ui_CLS_Scan(object):
     def setupUi(self, CLS_Scan):
@@ -155,11 +158,15 @@ class Ui_CLS_Scan(object):
         self.label_3.setGeometry(QRect(200, 220, 111, 16))
         #This is where the labels end        
         self.retranslateUi(CLS_Scan)
+        
+
         self._daq_output = None
         self._APD = None
         self._daq_active = False
         self._started = False
-
+        self._test_writer = None
+        self._samples = None
+        self._timer = None
         QMetaObject.connectSlotsByName(CLS_Scan)
         
         #this will be where all of my code will go
@@ -168,6 +175,7 @@ class Ui_CLS_Scan(object):
         self.frequency.valueChanged.connect(self.value_change)
         self.amplitude.valueChanged.connect(self.value_change)
         self.offset.valueChanged.connect(self.value_change)
+        self._timer.timeout.connect(self.write_graph)
         
 
     # setupUi
@@ -211,14 +219,22 @@ class Ui_CLS_Scan(object):
         if not self._daq_active:
             self._daq_active = True
             self._daq_output = daq.Task()
-            self._daq_output.ao_channels.add_ao_func_gen_chan(physical_channel=daq_channel,type=daq.constants.FuncGenType.TRIANGLE,freq = self.frequency.value(),amplitude = self.amplitude.value(),offset = self.offset.value()) #at some point this should not be hardcoded
-            self._APD = APD_Reader(self.daq_channel.Value(),1000000/self.frequency.value())
+            self._daq_output.ao_channels.add_ao_voltage_chan(physical_channel=daq_channel,min_val = -10, max_val = 10) #at some point this should not be hardcoded
+            self._daq_output.cfg_sample_clk_timing(rate =1000000,sample_mode= AcquisitionType.CONTINUOUS)
+            self._test_writer = AnalogSingleChannelWriter(self._daq_output.out_stream, auto_start=True)
+            time = np.linspace(0,1,1000000)
+            self._samples = sawtooth(2*np.pi*self._frequency.value()*time)
+            self._APD = APD_Reader(self.daq_channel.value(),1000000/self.frequency.value())
             self._daq_output.start()
             self._APD.start_acquisition()
+            self._timer = QTimer()
+            timing = (1/self.frequency.value())*1000*2
+            self._timer.start(timing)
             self.started = True
     def stop_acq(self):
         if self._daq_active and self._started:
             self._daq_active = False
+            self._timer.stop()
             self._daq_output.stop()
             self._daq_output.close()
             self._APD.stop_acquisition()
@@ -227,8 +243,18 @@ class Ui_CLS_Scan(object):
     def value_change(self):
         if daq_active:
             self._daq_output.stop()
-            self._daq_ouput.ao_channels.add_ao_func_gen_chan(daq_channel,type=daq.constants.FuncGenType.TRIANGLE,freq = self.frequency.value(),amplitude = self.amplitude.value(),offset = self.offset.value())
+            self._daq_output.ao_channels.add_ao_voltage_chan(physical_channel=daq_channel,min_val = -10, max_val = 10) #at some point this should not be hardcoded
+            self._daq_output.cfg_sample_clk_timing(rate =1000000,sample_mode= AcquisitionType.CONTINUOUS)
+            self._test_writer = AnalogSingleChannelWriter(self._daq_output.out_stream, auto_start=True)
+            time = np.linspace(0,1,1000000)
+            self._samples = (((sawtooth(2*np.pi*self._frequency.value()*time,width=0.5))+1)/2)*self.amplitude.value()
+            self._test_writer.write_many_samples(self._samples)
             self._daq_output.start()
+            self._timer.stop()
+            timing = (1/self.frequency.value())*1000*2
+            self._timer.start(timing)
+    def write_graph(self):
+        self.waveform.plot(self._APD.read_values())
 
 if __name__ == "__main__":
     import sys
