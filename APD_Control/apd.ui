@@ -28,9 +28,9 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>190</y>
+      <y>270</y>
       <width>131</width>
-      <height>71</height>
+      <height>41</height>
      </rect>
     </property>
     <property name="font">
@@ -46,9 +46,9 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>300</y>
+      <y>320</y>
       <width>131</width>
-      <height>71</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -64,7 +64,7 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>140</y>
+      <y>230</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -88,7 +88,7 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>100</y>
+      <y>200</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -106,7 +106,7 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>20</y>
+      <y>130</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -124,10 +124,15 @@
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>60</y>
+      <y>160</y>
       <width>111</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="sortingEnabled">
      <bool>false</bool>
@@ -178,6 +183,72 @@
      </property>
     </item>
    </widget>
+   <widget class="QDoubleSpinBox" name="min_voltage">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>100</y>
+      <width>131</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_max_voltage_2">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>75</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Minimum Voltage</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_max_voltage">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>25</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Maximum Voltage</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="max_voltage">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>50</y>
+      <width>131</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -185,7 +256,7 @@
      <x>0</x>
      <y>0</y>
      <width>726</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
