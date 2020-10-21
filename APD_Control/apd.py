@@ -128,12 +128,13 @@ class Ui_apdMonitor(object):
     # retranslateUi
 
     def start_acq(self):
-        self._apd = APD_Reader(self.daqList.currentItem(),1000000/self.frequency.value())
+        print(self.daqList.currentItem().text())
+        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)))
         self._apd.start_acquisition()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
         self._timer.start(time)
-        self._timer.timeout.connect(self.graph_values())
+        self._timer.timeout.connect(self.graph_values)
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
         self._active = True
@@ -149,8 +150,11 @@ class Ui_apdMonitor(object):
         if self._active:
             self._apd.stop_acquisition()
             self._apd.close_daq()
-            self._apd = APD_Reader(self.daqList.currentItem(),1000000/self.frequency.value())
+            self._apd = None
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)))
+            self._apd.start_acquisition()
     def graph_values(self):
+        self.apd_graph.clear()
         self.apd_graph.plot(self._apd.read_values())
 if __name__ == "__main__":
     import sys
