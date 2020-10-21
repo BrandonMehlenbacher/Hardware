@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>654</width>
-    <height>418</height>
+    <width>726</width>
+    <height>443</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QGraphicsView" name="apd_graph">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>40</x>
+      <y>20</y>
       <width>461</width>
       <height>361</height>
      </rect>
@@ -27,8 +27,8 @@
    <widget class="QPushButton" name="start">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>70</y>
+      <x>560</x>
+      <y>190</y>
       <width>131</width>
       <height>71</height>
      </rect>
@@ -45,8 +45,8 @@
    <widget class="QPushButton" name="stop">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>220</y>
+      <x>560</x>
+      <y>300</y>
       <width>131</width>
       <height>71</height>
      </rect>
@@ -60,14 +60,132 @@
      <string>Stop</string>
     </property>
    </widget>
+   <widget class="QDoubleSpinBox" name="frequency">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>140</y>
+      <width>131</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="maximum">
+     <double>10000.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.100000000000000</double>
+    </property>
+    <property name="value">
+     <double>10.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_frequency">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>100</y>
+      <width>131</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Frequency</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_daqList">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>20</y>
+      <width>131</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>DAQ Channel</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="daqList">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>60</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="sortingEnabled">
+     <bool>false</bool>
+    </property>
+    <item>
+     <property name="text">
+      <string>Dev1/ai0</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai7</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai8</string>
+     </property>
+    </item>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>654</width>
-     <height>21</height>
+     <width>726</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>
