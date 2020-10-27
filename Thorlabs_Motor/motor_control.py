@@ -42,3 +42,7 @@ class Motor(object):
     @property
     def serial_number(self):
         return self._serial_number
+    def enable(self):
+        self._motor.enable()
+    def disable(self):
+        self._motor.disable()
