@@ -12,7 +12,9 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import pyqtgraph as pg
-from Thorlabs_Motor.motor_control import Motor
+import thorlabs_apt as apt
+from instrumental import instrument, list_instruments
+from motor_control import Motor
 
 
 
@@ -76,9 +78,15 @@ class Ui_GimbalMirrors(object):
         self.retranslateUi(GimbalMirrors)
 
         QMetaObject.connectSlotsByName(GimbalMirrors)
+        self.start.setEnabled(True)
+        self.stop.setEnabled(False)
+        self._instrument_list = list_instruments()
+        self._list_devices = apt.list_available_devices()
+        self._timer = None
         self._x_motor = None
         self._y_motor = None
         self._camera = None
+        self._first_start = True
     # setupUi
      def retranslateUi(self, GimbalMirrors):
         GimbalMirrors.setWindowTitle(QCoreApplication.translate("GimbalMirrors", u"MainWindow", None))
@@ -87,7 +95,7 @@ class Ui_GimbalMirrors(object):
         self.pushButton.setText(QCoreApplication.translate("GimbalMirrors", u"Start", None))
         self.pushButton_2.setText(QCoreApplication.translate("GimbalMirrors", u"Stop", None))
     # retranslateUi
-    # retranslateUi
+
     def change_x_axis(self):
         x_axis_value = self.x_axis.value()/10000
         self._x_motor.move_absolute(x_axis_value)
@@ -96,14 +104,40 @@ class Ui_GimbalMirrors(object):
         self._y_motor.move_absolute(y_axis_value)
     def start(self):
         
+        if self._first_start:
+            self._x_motor = Motor(self._list_devices[0][1])
+            self._y_motor = Motor(self._list_devices[1][1])
+            for x in range(len(self._instrument_list)):
+                if self._instrument_list[x]['serial'] == b'4102906167':
+                    self._camera = instrument(self._instrument_list[x])
+                    break
+            if (self._camer == None):
+                print("There was an error intializing the camera, please go fix it")
+                QCoreApplication.quit()
+            self._camera.start_live_video()
+            self._timer = QTimer()
+            self._timer.start(10) #10 ms before showing next frame
+            self._timer.timeout.connect(self.view_camera)
+            self._first_start = True
+        else:
+            self._x_motor.enable()
+            self._y_motor.enable()
+            self._camera.start_live_video()
+            self._timer = QTimer()
+            self._timer.start(10) #10 ms before showing next frame
+            self._timer.timeout.connect(self.view_camera)
+        self.start.setEnabled(False)
+        self.stop.setEnabled(True)
     def stop(self):
-        
+        self._x_motor.disable()
+        self._y_motor.disable()
+        self._timer = QTimer()
+        self._timer.stop()
+        self.start.setEnabled(True)
+        self.stop.setEnabled(False)
     def view_camera(self):
-        self._camera.
-
-    """
-    Need to add the camera next
-    """
+        self.camera_view.image(self._camera.latest_frame())
+        
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
