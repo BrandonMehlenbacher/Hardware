@@ -50,6 +50,7 @@ class Ui_GimbalMirrors(object):
         self.camera_view = pg.ImageView()
         self.camera_view.setObjectName(u"camera_view")
         self.camera_view.setGeometry(QRect(70, 20, 341, 261))
+        self.camera_view.show()
         self.label_y_axis = QLabel(self.gimbalControl)
         self.label_y_axis.setObjectName(u"label_y_axis")
         self.label_y_axis.setGeometry(QRect(10, 20, 47, 13))
@@ -87,56 +88,57 @@ class Ui_GimbalMirrors(object):
         self._y_motor = None
         self._camera = None
         self._first_start = True
+        self._allow_move = False
+        self._timer = QTimer()
+        self.start.clicked.connect(self.start_acq)
+        self.stop.clicked.connect(self.stop_acq)
+        self.x_axis.valueChanged.connect(self.change_x_axis)
+        self.y_axis.valueChanged.connect(self.change_y_axis)
     # setupUi
-     def retranslateUi(self, GimbalMirrors):
+    def retranslateUi(self, GimbalMirrors):
         GimbalMirrors.setWindowTitle(QCoreApplication.translate("GimbalMirrors", u"MainWindow", None))
         self.label_y_axis.setText(QCoreApplication.translate("GimbalMirrors", u"Y-Axis", None))
         self.label_x_axis.setText(QCoreApplication.translate("GimbalMirrors", u"X-Axis", None))
-        self.pushButton.setText(QCoreApplication.translate("GimbalMirrors", u"Start", None))
-        self.pushButton_2.setText(QCoreApplication.translate("GimbalMirrors", u"Stop", None))
+        self.start.setText(QCoreApplication.translate("GimbalMirrors", u"Start", None))
+        self.stop.setText(QCoreApplication.translate("GimbalMirrors", u"Stop", None))
     # retranslateUi
 
+    
+    def start_acq(self):
+        if self._first_start:
+            self._y_motor = Motor(self._list_devices[0][1])
+            self._x_motor = Motor(self._list_devices[1][1])
+            for x in range(len(self._instrument_list)):
+                print(self._instrument_list[x])
+                if self._instrument_list[x]['serial'] == b'4102906167':
+                    self._camera = instrument(self._instrument_list[x])
+                    break
+            if (self._camera == None):
+                print("There was an error intializing the camera, please go fix it")
+                QCoreApplication.quit()
+            self._camera.start_live_video()
+            self._first_start = False
+        else:
+            self._x_motor.enable()
+            self._y_motor.enable()
+        self._timer.start(50) #10 ms before showing next frame
+        self._timer.timeout.connect(self.view_camera)
+        self.start.setEnabled(False)
+        self.stop.setEnabled(True)
+    def stop_acq(self):
+        self._x_motor.disable()
+        self._y_motor.disable()
+        self._timer.stop()
+        self.start.setEnabled(True)
+        self.stop.setEnabled(False)
     def change_x_axis(self):
         x_axis_value = self.x_axis.value()/10000
         self._x_motor.move_absolute(x_axis_value)
     def change_y_axis(self):
-        y_axis_value = self.x_axis.value()/10000
+        y_axis_value = self.y_axis.value()/10000
         self._y_motor.move_absolute(y_axis_value)
-    def start(self):
-        
-        if self._first_start:
-            self._x_motor = Motor(self._list_devices[0][1])
-            self._y_motor = Motor(self._list_devices[1][1])
-            for x in range(len(self._instrument_list)):
-                if self._instrument_list[x]['serial'] == b'4102906167':
-                    self._camera = instrument(self._instrument_list[x])
-                    break
-            if (self._camer == None):
-                print("There was an error intializing the camera, please go fix it")
-                QCoreApplication.quit()
-            self._camera.start_live_video()
-            self._timer = QTimer()
-            self._timer.start(10) #10 ms before showing next frame
-            self._timer.timeout.connect(self.view_camera)
-            self._first_start = True
-        else:
-            self._x_motor.enable()
-            self._y_motor.enable()
-            self._camera.start_live_video()
-            self._timer = QTimer()
-            self._timer.start(10) #10 ms before showing next frame
-            self._timer.timeout.connect(self.view_camera)
-        self.start.setEnabled(False)
-        self.stop.setEnabled(True)
-    def stop(self):
-        self._x_motor.disable()
-        self._y_motor.disable()
-        self._timer = QTimer()
-        self._timer.stop()
-        self.start.setEnabled(True)
-        self.stop.setEnabled(False)
     def view_camera(self):
-        self.camera_view.image(self._camera.latest_frame())
+        self.camera_view.setImage(self._camera.latest_frame())
         
 if __name__ == "__main__":
     import sys
