@@ -18,19 +18,25 @@ class Ui_apdMonitor(object):
     """
     The whole point of this gui is to simply monitor data gathered from and APD
     
-    simple description of how to run this program,
-    Exec: Exec ./apd.py from the command line or powershell to initialize the program
-    Run: Click the 
+    simple description of how to run this program
+    
+    Exec: python ./apd.py from the command line or powershell to initialize the program
 
+    Run: Click the start button to begin acquisition. If no daq channel is specified it will prompt you to do so before it attempts to
+    open the GUI. After it is open, the frequency, board input channel, and the max and min voltage can all be changed while running the program
+    To stop data acquisition, simply hit the stop button and it will terminate
+
+    
     """
     def setupUi(self, apdMonitor):
+        #All of these parts are set-up through the ui that is generated. If you would like to change them make sure to go change it through the ui file
+        #You can change them in here to, designer just makes it really easy to do and visualize
         if not apdMonitor.objectName():
             apdMonitor.setObjectName(u"apdMonitor")
         apdMonitor.resize(726, 443)
         self.centralwidget = QWidget(apdMonitor)
         self.centralwidget.setObjectName(u"centralwidget")
-        #self.apd_graph = QGraphicsView(self.centralwidget)
-        self.apd_graph = pg.PlotWidget(self.centralwidget)
+        self.apd_graph = pg.PlotWidget(self.centralwidget) #this is the plotting widget, i replaced the Graphics view with it
         self.apd_graph.setObjectName(u"apd_graph")
         self.apd_graph.setGeometry(QRect(40, 20, 461, 361))
         self.start = QPushButton(self.centralwidget)
@@ -101,8 +107,12 @@ class Ui_apdMonitor(object):
 
 
         self.retranslateUi(apdMonitor)
-
+        
         QMetaObject.connectSlotsByName(apdMonitor)
+        #all of the rest of the code that I have added is below
+        #If any changes are made to the ui, copy everything down
+        #and only replace components above the top most comment
+        #and replace the retranslateUI function.
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._apd = None
@@ -115,7 +125,6 @@ class Ui_apdMonitor(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.max_voltage.valueChanged.connect(self.change_value)
         self.min_voltage.valueChanged.connect(self.change_value)
-    # setupUi
 
     def retranslateUi(self, apdMonitor):
         apdMonitor.setWindowTitle(QCoreApplication.translate("apdMonitor", u"MainWindow", None))
@@ -149,8 +158,7 @@ class Ui_apdMonitor(object):
         self.label_min_voltage.setText(QCoreApplication.translate("apdMonitor", u"Minimum Voltage", None))
         self.label_max_voltage.setText(QCoreApplication.translate("apdMonitor", u"Maximum Voltage", None))
 
-    # retranslateUi
-
+    #function for starting the acquisition 
     def start_acq(self):
         try:
             print(self.daqList.currentItem().text())
@@ -165,6 +173,7 @@ class Ui_apdMonitor(object):
             self._active = True
         except AttributeError:
             print("Make sure you selected a daq channel")
+    #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
         self._apd.close_daq()
@@ -173,6 +182,7 @@ class Ui_apdMonitor(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
+    #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
             self._apd.stop_acquisition()
@@ -180,9 +190,12 @@ class Ui_apdMonitor(object):
             self._apd = None
             self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.max_voltage.value(),min_val = self.min_voltage.value(),)
             self._apd.start_acquisition()
+    #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
         self.apd_graph.clear()
         self.apd_graph.plot(self._apd.read_values())
+
+#Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
@@ -191,3 +204,4 @@ if __name__ == "__main__":
     ui.setupUi(apdMonitor)
     apdMonitor.show()
     sys.exit(app.exec_())
+    
