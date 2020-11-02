@@ -7,11 +7,17 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
+import sys
+sys.path.append(r"C:\Users\Goldsmith\Desktop\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-from Thorlabs_APD import APD_Reader
+
+from APD_Control.Thorlabs_APD import APD_Reader
+from Q_Calc import QFactor
+import scipy.optimize as optimize
+import numpy as np
 import pyqtgraph as pg
 
 class Ui_QMonitor(object):
@@ -21,7 +27,8 @@ class Ui_QMonitor(object):
         QMonitor.resize(945, 453)
         self.centralwidget = QWidget(QMonitor)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.apd_graph = QGraphicsView(self.centralwidget)
+        #self.apd_graph = QGraphicsView(self.centralwidget)
+        self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.apd_graph.setObjectName(u"apd_graph")
         self.apd_graph.setGeometry(QRect(40, 20, 461, 361))
         self.start = QPushButton(self.centralwidget)
@@ -66,6 +73,7 @@ class Ui_QMonitor(object):
         self.min_voltage = QDoubleSpinBox(self.centralwidget)
         self.min_voltage.setObjectName(u"min_voltage")
         self.min_voltage.setGeometry(QRect(560, 140, 131, 31))
+        self.min_voltage.setMinimum(-10.000000000000000)
         self.min_voltage.setFont(font)
         self.label_max_voltage_2 = QLabel(self.centralwidget)
         self.label_max_voltage_2.setObjectName(u"label_max_voltage_2")
@@ -78,6 +86,7 @@ class Ui_QMonitor(object):
         self.max_voltage = QDoubleSpinBox(self.centralwidget)
         self.max_voltage.setObjectName(u"max_voltage")
         self.max_voltage.setGeometry(QRect(560, 70, 131, 31))
+        self.max_voltage.setValue(10.000000000000000)
         self.max_voltage.setFont(font)
         self.Value_Q_Factor = QLCDNumber(self.centralwidget)
         self.Value_Q_Factor.setObjectName(u"Value_Q_Factor")
@@ -107,19 +116,25 @@ class Ui_QMonitor(object):
         #and only replace components above the top most comment
         #and replace the retranslateUI function.
         self.start.setEnabled(True)
-        self.stop.setEnabled(False)
+        self.stop.setEnabled(True)
         self._apd = None
         self._timer = None
         self._active = False
-        QMetaObject.connectSlotsByName(apdMonitor)
+        self._QCalc = None
+        self._sweepFreq = 40 #hardcoding for now will come back later
+        self._resolution = 1000000 #hardcoding for now will come back later
+        self._correction = int(self._resolution/self._sweepFreq)
+        self._x_values = (120.5/self._correction)*np.array(range(self._correction))
+        QMetaObject.connectSlotsByName(QMonitor)
         self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
         self.stop.clicked.connect(self.stop_acq)
         self.daqList.currentItemChanged.connect(self.change_value)
         self.max_voltage.valueChanged.connect(self.change_value)
         self.min_voltage.valueChanged.connect(self.change_value)
+        self.Push_Q_Factor.clicked.connect(self.qFactor)
 
-     def retranslateUi(self, QMonitor):
+    def retranslateUi(self, QMonitor):
         QMonitor.setWindowTitle(QCoreApplication.translate("QMonitor", u"MainWindow", None))
         self.start.setText(QCoreApplication.translate("QMonitor", u"Start", None))
         self.stop.setText(QCoreApplication.translate("QMonitor", u"Stop", None))
@@ -156,46 +171,65 @@ class Ui_QMonitor(object):
     #function for starting the acquisition 
     def start_acq(self):
         try:
-            print(self.daqList.currentItem().text())
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.max_voltage.value(),min_val = self.min_voltage.value())
-            self._apd.start_acquisition()
-            self._timer = QTimer()
-            time = (1/self.frequency.value())*1000
-            self._timer.start(time)
-            self._timer.timeout.connect(self.graph_values)
-            self.start.setEnabled(False)
-            self.stop.setEnabled(True)
-            self._active = True
+            if self._active:
+                self._apd.start_acquisition()
+            else:
+                print(self.daqList.currentItem().text())
+                self._apd = APD_Reader(self.daqList.currentItem().text(),int(self._correction),max_val = self.max_voltage.value(),min_val = self.min_voltage.value(),continuous=False)
+                self._apd.start_acquisition()
+                self._timer = QTimer()
+                self._active = True
         except AttributeError:
             print("Make sure you selected a daq channel")
     #function for stopping the acquisition
     def stop_acq(self):
-        self._apd.stop_acquisition()
-        self._apd.close_daq()
-        self._apd = None
-        self._timer.stop()
-        self.start.setEnabled(True)
-        self.stop.setEnabled(False)
-        self._active = False
+        if self._active:
+            self._apd.close_daq()
+            self._apd = None
+            self._active = False
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.max_voltage.value(),min_val = self.min_voltage.value(),)
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(self._correction),max_val = self.max_voltage.value(),min_val = self.min_voltage.value(),)
             self._apd.start_acquisition()
     #plots all of the values from the APD in the pyqtplot
-    def graph_values(self):
-        self.apd_graph.clear()
-        self.apd_graph.plot(self._apd.read_values())
-
+    def graph_values(self,y_values):
+        pass
+        #self.apd_graph.clear()
+        
+    def qFactor(self):
+        if self._active:
+            self.apd_graph.clear()
+            values = self._apd.read_values()
+            x_values = self._x_values[0:int(len(self._x_values)/2)]
+            y_values = values[0:int(len(self._x_values)/2)]
+            self.apd_graph.plot(x_values,y_values)
+            #self.graph_values(values)
+            self._QCalc = QFactor(x_values,y_values)
+            self._QCalc.fitLorentz()
+            
+            sigma = self._QCalc.getSigma()
+            center = self._QCalc.getCenter()
+            amplitude = self._QCalc.getAmplitude()
+            print(center,"center")
+            print(sigma,"sigma")
+            print(amplitude,"amplitude")
+            self._apd.stop_acquisition()
+            self.Value_Q_Factor.display(780000/sigma)
+            #print(center)
+            newYValues = self._QCalc.getNewYVal()
+            self.apd_graph.plot(x_values,newYValues)
+            
+        
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
     QMonitor = QMainWindow()
-    ui = Ui_apdMonitor()
+    ui = Ui_QMonitor()
     ui.setupUi(QMonitor)
     QMonitor.show()
     sys.exit(app.exec_())
