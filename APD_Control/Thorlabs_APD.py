@@ -8,7 +8,7 @@ class APD_Reader(object):
     the main idea for this class is to provide a generic APD reader
     it requires only one input, the channel that you are reading off of
     """
-    def __init__(self,channel,size_of_channel,max_val = 2, min_val = -0.5):
+    def __init__(self,channel,size_of_channel,max_val = 2, min_val = -0.5,continuous = True):
         """
         Inputs:
         Channel: this is the input channel that we use must contain Dev
@@ -20,8 +20,10 @@ class APD_Reader(object):
         self._apd.ai_channels.add_ai_voltage_chan(channel,max_val = max_val,min_val = min_val)
         self._rate = 1000000
         self._size_of_channel = size_of_channel
-        self._apd.timing.cfg_samp_clk_timing(rate = self._rate,samps_per_chan = self._size_of_channel, sample_mode = nidaqmx.constants.AcquisitionType.CONTINUOUS)
-        #self._apd.read(number_of_samples_per_channel = self._size_of_channel)
+        if continuous:
+            self._apd.timing.cfg_samp_clk_timing(rate = self._rate,samps_per_chan = self._size_of_channel, sample_mode = nidaqmx.constants.AcquisitionType.CONTINUOUS)
+        else:
+            self._apd.timing.cfg_samp_clk_timing(rate = self._rate,samps_per_chan = self._size_of_channel, sample_mode = nidaqmx.constants.AcquisitionType.FINITE)
     @property
     def size_of_channel(self):
         return size_of_channel
