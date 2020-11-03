@@ -8,6 +8,7 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 import sys
+import pandas as pd
 sys.path.append(r"C:\Users\Goldsmith\Desktop\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
 
 from PySide2.QtCore import *
@@ -115,6 +116,7 @@ class Ui_QMonitor(object):
         #If any changes are made to the ui, copy everything down
         #and only replace components above the top most comment
         #and replace the retranslateUI function.
+        self._filename = "qFactorCavity_0509_planarSubstrate.csv" # this will later be part of the GUI but not today 11/03/2020
         self.start.setEnabled(True)
         self.stop.setEnabled(True)
         self._apd = None
@@ -196,32 +198,24 @@ class Ui_QMonitor(object):
             self._apd = APD_Reader(self.daqList.currentItem().text(),int(self._correction),max_val = self.max_voltage.value(),min_val = self.min_voltage.value(),)
             self._apd.start_acquisition()
     #plots all of the values from the APD in the pyqtplot
-    def graph_values(self,y_values):
-        pass
-        #self.apd_graph.clear()
-        
     def qFactor(self):
         if self._active:
             self.apd_graph.clear()
             values = self._apd.read_values()
             x_values = self._x_values[0:int(len(self._x_values)/2)]
             y_values = values[0:int(len(self._x_values)/2)]
+            dataframe = pd.DataFrame({'x_values':x_values,'y_values':y_values})
             self.apd_graph.plot(x_values,y_values)
-            #self.graph_values(values)
             self._QCalc = QFactor(x_values,y_values)
             self._QCalc.fitLorentz()
-            
             sigma = self._QCalc.getSigma()
             center = self._QCalc.getCenter()
             amplitude = self._QCalc.getAmplitude()
-            print(center,"center")
-            print(sigma,"sigma")
-            print(amplitude,"amplitude")
             self._apd.stop_acquisition()
             self.Value_Q_Factor.display(780000/sigma)
-            #print(center)
             newYValues = self._QCalc.getNewYVal()
             self.apd_graph.plot(x_values,newYValues)
+            dataframe.to_csv(self._filename)
             
         
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
