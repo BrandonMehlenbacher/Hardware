@@ -17,6 +17,19 @@ import pyqtgraph as pg
 import pyvisa as visa
 
 class Ui_apdMonitor(object):
+    """
+    The whole point of this gui is to simply monitor data gathered from and APD
+    
+    simple description of how to run this program
+    
+    Exec: python ./apd.py from the command line or powershell to initialize the program
+
+    Run: Click the start button to begin acquisition. If no daq channel is specified it will prompt you to do so before it attempts to
+    open the GUI. After it is open, the frequency, board input channel, and the max and min voltage can all be changed while running the program
+    To stop data acquisition, simply hit the stop button and it will terminate
+
+    
+    """
     def setupUi(self, apdMonitor):
         if not apdMonitor.objectName():
             apdMonitor.setObjectName(u"apdMonitor")
