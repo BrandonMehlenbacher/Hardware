@@ -8,9 +8,10 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 import sys
-import pandas as pd
-sys.path.append(r"C:\Users\Goldsmith\Desktop\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
 
+sys.path.append(r"C:\Users\bmehl\Desktop\Research_Programs\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
+
+import pandas as pd
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -20,8 +21,12 @@ from Q_Calc import QFactor
 import scipy.optimize as optimize
 import numpy as np
 import pyqtgraph as pg
+from initialValues import initializeValues
 
 class Ui_QMonitor(object):
+    def __init__(self):
+        names = ['frequency','minVoltage','maxVoltage']
+        self.values = initializeValues(names)
     def setupUi(self, QMonitor):
         if not QMonitor.objectName():
             QMonitor.setObjectName(u"QMonitor")
@@ -48,7 +53,7 @@ class Ui_QMonitor(object):
         self.frequency.setFont(font)
         self.frequency.setMaximum(10000.000000000000000)
         self.frequency.setSingleStep(0.100000000000000)
-        self.frequency.setValue(10.000000000000000)
+        self.frequency.setValue(self.values.getEntry("frequency"))
         self.label_frequency = QLabel(self.centralwidget)
         self.label_frequency.setObjectName(u"label_frequency")
         self.label_frequency.setGeometry(QRect(750, 40, 131, 31))
@@ -74,6 +79,7 @@ class Ui_QMonitor(object):
         self.min_voltage = QDoubleSpinBox(self.centralwidget)
         self.min_voltage.setObjectName(u"min_voltage")
         self.min_voltage.setGeometry(QRect(560, 140, 131, 31))
+        self.min_voltage.setValue(self.values.getEntry("minVoltage"))
         self.min_voltage.setMinimum(-10.000000000000000)
         self.min_voltage.setFont(font)
         self.label_max_voltage_2 = QLabel(self.centralwidget)
@@ -87,7 +93,7 @@ class Ui_QMonitor(object):
         self.max_voltage = QDoubleSpinBox(self.centralwidget)
         self.max_voltage.setObjectName(u"max_voltage")
         self.max_voltage.setGeometry(QRect(560, 70, 131, 31))
-        self.max_voltage.setValue(10.000000000000000)
+        self.max_voltage.setValue(self.values.getEntry("maxVoltage"))
         self.max_voltage.setFont(font)
         self.Value_Q_Factor = QLCDNumber(self.centralwidget)
         self.Value_Q_Factor.setObjectName(u"Value_Q_Factor")
@@ -191,7 +197,12 @@ class Ui_QMonitor(object):
             self._active = False
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
+        listValues = [self.frequency.value(),
+                          self.min_voltage.value(),
+                          self.max_voltage.value(),]
+        self.values.saveValues(listValues)
         if self._active:
+            #this is the list of values we will track, need to be same order as names
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
@@ -216,8 +227,6 @@ class Ui_QMonitor(object):
             newYValues = self._QCalc.getNewYVal()
             self.apd_graph.plot(x_values,newYValues)
             dataframe.to_csv(self._filename)
-            
-        
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys

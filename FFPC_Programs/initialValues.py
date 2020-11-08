@@ -2,10 +2,11 @@ import csv
 import pathlib
 
 class initializeValues(object):
-    def __init__(self,filename='initialValues.csv'):
+    def __init__(self,names,filename='initialValues.csv'):
         self.filename = filename
-        self.initialValues = self.getInitialValues()
-    def getInitialValues(self):
+        self.names = names
+        self.initialValues = self.getInitialValues(names)
+    def getInitialValues(self,names):
         currentDict = dict()
         path = pathlib.Path(self.filename)
         if path.is_file():
@@ -14,19 +15,13 @@ class initializeValues(object):
                 for name, value in reader:
                     currentDict[name] = value
         else:
-            num_entries = int(input("How many values do you want to be saved? "))
-            for x in range(num_entries):
-                name = input("Name of value? ")
-                value = int(input("Saved Value? "))
-                if name in currentDict.keys():
-                    print("Only one entry per key name")
+            valuesList = []
+            for name in names:
+                value = int(input(f"For {name} what do you want the saved value? "))
                 currentDict[name] = value
+                valuesList.append(value)
+            self.saveValues(valuesList)
         return currentDict
-    def listKeys(self):
-        nameList = []
-        for name in self.initialValues.keys():
-            nameList.append(name)
-        return nameList
     def listEntries(self):
         for name,value in self.initialValues.items():
             print(name,value)
@@ -36,8 +31,9 @@ class initializeValues(object):
         else:
             sys.exit("value does not exist, please make sure you entered everything correctly")
     def changeValues(self,values):
-        nameList = self.listKeys()
+        nameList = self.names
         for i in range(len(nameList)):
+            print(nameList[i])
             self.initialValues[nameList[i]] = values[i]
     def saveValues(self,values):
         self.changeValues(values)
