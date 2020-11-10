@@ -7,7 +7,7 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-
+import os
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -29,40 +29,38 @@ class Ui_apdMonitor(object):
     
     """
     def setupUi(self, apdMonitor):
-        #All of these parts are set-up through the ui that is generated. If you would like to change them make sure to go change it through the ui file
-        #You can change them in here to, designer just makes it really easy to do and visualize
         if not apdMonitor.objectName():
             apdMonitor.setObjectName(u"apdMonitor")
-        apdMonitor.resize(726, 443)
+        apdMonitor.resize(908, 701)
         self.centralwidget = QWidget(apdMonitor)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.apd_graph = pg.PlotWidget(self.centralwidget) #this is the plotting widget, i replaced the Graphics view with it
+        self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.apd_graph.setObjectName(u"apd_graph")
-        self.apd_graph.setGeometry(QRect(40, 20, 461, 361))
+        self.apd_graph.setGeometry(QRect(60, 270, 461, 361))
         self.start = QPushButton(self.centralwidget)
         self.start.setObjectName(u"start")
-        self.start.setGeometry(QRect(560, 270, 131, 41))
+        self.start.setGeometry(QRect(740, 380, 131, 51))
         font = QFont()
         font.setPointSize(12)
         self.start.setFont(font)
         self.stop = QPushButton(self.centralwidget)
         self.stop.setObjectName(u"stop")
-        self.stop.setGeometry(QRect(560, 320, 131, 51))
+        self.stop.setGeometry(QRect(740, 440, 131, 51))
         self.stop.setFont(font)
         self.frequency = QDoubleSpinBox(self.centralwidget)
         self.frequency.setObjectName(u"frequency")
-        self.frequency.setGeometry(QRect(560, 230, 131, 31))
+        self.frequency.setGeometry(QRect(550, 540, 131, 31))
         self.frequency.setFont(font)
         self.frequency.setMaximum(10000.000000000000000)
         self.frequency.setSingleStep(0.100000000000000)
-        self.frequency.setValue(10.000000000000000)
+        
         self.labelFrequency = QLabel(self.centralwidget)
         self.labelFrequency.setObjectName(u"labelFrequency")
-        self.labelFrequency.setGeometry(QRect(560, 200, 131, 31))
+        self.labelFrequency.setGeometry(QRect(550, 510, 131, 31))
         self.labelFrequency.setFont(font)
         self.labelDaqList = QLabel(self.centralwidget)
         self.labelDaqList.setObjectName(u"labelDaqList")
-        self.labelDaqList.setGeometry(QRect(560, 130, 131, 31))
+        self.labelDaqList.setGeometry(QRect(550, 440, 131, 31))
         self.labelDaqList.setFont(font)
         self.daqList = QListWidget(self.centralwidget)
         QListWidgetItem(self.daqList)
@@ -75,37 +73,92 @@ class Ui_apdMonitor(object):
         QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
         self.daqList.setObjectName(u"daqList")
-        self.daqList.setGeometry(QRect(560, 160, 111, 31))
+        self.daqList.setGeometry(QRect(550, 470, 111, 31))
         self.daqList.setFont(font)
         self.daqList.setSortingEnabled(False)
         self.minVoltage = QDoubleSpinBox(self.centralwidget)
         self.minVoltage.setObjectName(u"minVoltage")
-        self.minVoltage.setGeometry(QRect(560, 100, 131, 21))
-        self.minVoltage.setMinimum(-10.000000000000000)
+        self.minVoltage.setGeometry(QRect(550, 410, 131, 21))
         self.minVoltage.setFont(font)
         self.labelMinVoltage = QLabel(self.centralwidget)
         self.labelMinVoltage.setObjectName(u"labelMinVoltage")
-        self.labelMinVoltage.setGeometry(QRect(560, 75, 141, 21))
+        self.labelMinVoltage.setGeometry(QRect(550, 380, 161, 31))
         self.labelMinVoltage.setFont(font)
         self.labelMaxVoltage = QLabel(self.centralwidget)
         self.labelMaxVoltage.setObjectName(u"labelMaxVoltage")
-        self.labelMaxVoltage.setGeometry(QRect(560, 25, 141, 21))
+        self.labelMaxVoltage.setGeometry(QRect(550, 320, 181, 31))
         self.labelMaxVoltage.setFont(font)
         self.maxVoltage = QDoubleSpinBox(self.centralwidget)
         self.maxVoltage.setObjectName(u"maxVoltage")
-        self.maxVoltage.setGeometry(QRect(560, 50, 131, 21))
+        self.maxVoltage.setGeometry(QRect(550, 360, 131, 21))
         self.maxVoltage.setFont(font)
-        self.maxVoltage.setValue(10)
+        self.cavityName = QPlainTextEdit(self.centralwidget)
+        self.cavityName.setObjectName(u"cavityName")
+        self.cavityName.setGeometry(QRect(220, 130, 291, 41))
+        font1 = QFont()
+        font1.setPointSize(10)
+        self.cavityName.setFont(font1)
+        self.labelFolderName = QLabel(self.centralwidget)
+        self.labelFolderName.setObjectName(u"labelFolderName")
+        self.labelFolderName.setGeometry(QRect(540, 100, 131, 16))
+        self.labelFolderName.setFont(font1)
+        self.labelComments = QLabel(self.centralwidget)
+        self.labelComments.setObjectName(u"labelComments")
+        self.labelComments.setGeometry(QRect(540, 180, 131, 16))
+        self.labelComments.setFont(font1)
+        self.labelCavityName = QLabel(self.centralwidget)
+        self.labelCavityName.setObjectName(u"labelCavityName")
+        self.labelCavityName.setGeometry(QRect(220, 100, 131, 16))
+        self.labelCavityName.setFont(font1)
+        self.labelWhoAreYou = QLabel(self.centralwidget)
+        self.labelWhoAreYou.setObjectName(u"labelWhoAreYou")
+        self.labelWhoAreYou.setGeometry(QRect(30, 100, 121, 21))
+        self.labelWhoAreYou.setFont(font1)
+        self.comments = QPlainTextEdit(self.centralwidget)
+        self.comments.setObjectName(u"comments")
+        self.comments.setGeometry(QRect(540, 210, 331, 41))
+        self.comments.setFont(font1)
+        self.whoAreYou = QListWidget(self.centralwidget)
+        QListWidgetItem(self.whoAreYou)
+        QListWidgetItem(self.whoAreYou)
+        QListWidgetItem(self.whoAreYou)
+        QListWidgetItem(self.whoAreYou)
+        QListWidgetItem(self.whoAreYou)
+        self.whoAreYou.setObjectName(u"whoAreYou")
+        self.whoAreYou.setGeometry(QRect(30, 130, 161, 41))
+        self.whoAreYou.setFont(font1)
+        self.labelFileLocationPath = QLabel(self.centralwidget)
+        self.labelFileLocationPath.setObjectName(u"labelFileLocationPath")
+        self.labelFileLocationPath.setGeometry(QRect(30, 10, 231, 16))
+        self.labelFileLocationPath.setFont(font1)
+        self.localOrDatabackup = QCheckBox(self.centralwidget)
+        self.localOrDatabackup.setObjectName(u"localOrDatabackup")
+        self.localOrDatabackup.setGeometry(QRect(30, 200, 241, 31))
+        self.localOrDatabackup.setFont(font1)
+        self.folderName = QPlainTextEdit(self.centralwidget)
+        self.folderName.setObjectName(u"folderName")
+        self.folderName.setGeometry(QRect(540, 130, 331, 41))
+        self.folderName.setFont(font1)
+        self.fileLocationPath = QPlainTextEdit(self.centralwidget)
+        self.fileLocationPath.setObjectName(u"fileLocationPath")
+        self.fileLocationPath.setGeometry(QRect(30, 40, 841, 41))
+        self.fileLocationPath.setFont(font1)
+        self.save = QPushButton(self.centralwidget)
+        self.save.setObjectName(u"save")
+        self.save.setGeometry(QRect(740, 520, 131, 51))
+        self.save.setFont(font)
         apdMonitor.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(apdMonitor)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 726, 21))
+        self.menubar.setGeometry(QRect(0, 0, 908, 26))
         apdMonitor.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(apdMonitor)
         self.statusbar.setObjectName(u"statusbar")
         apdMonitor.setStatusBar(self.statusbar)
 
-
+        self.frequency.setValue(10.000000000000000)
+        self.maxVoltage.setValue(10)
+        self.minVoltage.setValue(0)
         self.retranslateUi(apdMonitor)
         
         QMetaObject.connectSlotsByName(apdMonitor)
@@ -118,6 +171,7 @@ class Ui_apdMonitor(object):
         self._apd = None
         self._timer = None
         self._active = False
+        self._values = None
         QMetaObject.connectSlotsByName(apdMonitor)
         self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
@@ -126,6 +180,7 @@ class Ui_apdMonitor(object):
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
 
+        self.save.clicked.connect(self.save_values)
     def retranslateUi(self, apdMonitor):
         apdMonitor.setWindowTitle(QCoreApplication.translate("apdMonitor", u"MainWindow", None))
         self.start.setText(QCoreApplication.translate("apdMonitor", u"Start", None))
@@ -157,6 +212,32 @@ class Ui_apdMonitor(object):
 
         self.labelMinVoltage.setText(QCoreApplication.translate("apdMonitor", u"Minimum Voltage", None))
         self.labelMaxVoltage.setText(QCoreApplication.translate("apdMonitor", u"Maximum Voltage", None))
+        self.cavityName.setPlainText(QCoreApplication.translate("apdMonitor", u"Cavity", None))
+        self.labelFolderName.setText(QCoreApplication.translate("apdMonitor", u"Folder Name?", None))
+        self.labelComments.setText(QCoreApplication.translate("apdMonitor", u"Comments?", None))
+        self.labelCavityName.setText(QCoreApplication.translate("apdMonitor", u"Cavity Name?", None))
+        self.labelWhoAreYou.setText(QCoreApplication.translate("apdMonitor", u"Who Are you?", None))
+        self.comments.setPlainText("")
+
+        __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
+        self.whoAreYou.setSortingEnabled(False)
+        ___qlistwidgetitem9 = self.whoAreYou.item(0)
+        ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"Brandon", None));
+        ___qlistwidgetitem10 = self.whoAreYou.item(1)
+        ___qlistwidgetitem10.setText(QCoreApplication.translate("apdMonitor", u"Lisa-Maria", None));
+        ___qlistwidgetitem11 = self.whoAreYou.item(2)
+        ___qlistwidgetitem11.setText(QCoreApplication.translate("apdMonitor", u"Beau", None));
+        ___qlistwidgetitem12 = self.whoAreYou.item(3)
+        ___qlistwidgetitem12.setText(QCoreApplication.translate("apdMonitor", u"Ceci", None));
+        ___qlistwidgetitem13 = self.whoAreYou.item(4)
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("apdMonitor", u"Levi", None));
+        self.whoAreYou.setSortingEnabled(__sortingEnabled1)
+
+        self.labelFileLocationPath.setText(QCoreApplication.translate("apdMonitor", u"File Location Path", None))
+        self.localOrDatabackup.setText(QCoreApplication.translate("apdMonitor", u"Local (T) / Databackup (F)", None))
+        self.folderName.setPlainText(QCoreApplication.translate("apdMonitor", u"Cavity", None))
+        self.save.setText(QCoreApplication.translate("apdMonitor", u"Save", None))
+        
 
     #function for starting the acquisition 
     def start_acq(self):
@@ -193,8 +274,17 @@ class Ui_apdMonitor(object):
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
         self.apd_graph.clear()
-        self.apd_graph.plot(self._apd.read_values())
-
+        self._values = self._apd.read_values()
+        self.apd_graph.plot(self._values)
+    def save_values(self):
+        if self.localOrDatabackup.isChecked():
+            current_directory = os.getcwd()
+            self._filename = current_directory+"\\"+self.whoAreYou.currentItem().text()+"\\"+self.cavityName.toPlainText()+"\\"+self.folderName.toPlainText()+"\\"+self.comments.toPlainText()+".csv"
+            self.fileLocationPath.setPlainText(self._filename)
+        else:
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.cavityName.toPlainText()+"/"+self.folderName.toPlainText()+"/"+self.comments.toPlainText()+".csv"
+            self.fileLocationPath.setPlainText(self._filename)
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
