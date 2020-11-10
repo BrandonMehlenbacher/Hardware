@@ -56,7 +56,7 @@ class Ui_apdMonitor(object):
         self.frequency.setMaximum(10000.000000000000000)
         self.frequency.setSingleStep(0.100000000000000)
         self.frequency.setValue(10.000000000000000)
-        self.labeFrequency = QLabel(self.centralwidget)
+        self.labelFrequency = QLabel(self.centralwidget)
         self.labelFrequency.setObjectName(u"labelFrequency")
         self.labelFrequency.setGeometry(QRect(560, 200, 131, 31))
         self.labelFrequency.setFont(font)
@@ -123,8 +123,8 @@ class Ui_apdMonitor(object):
         self.start.clicked.connect(self.start_acq)
         self.stop.clicked.connect(self.stop_acq)
         self.daqList.currentItemChanged.connect(self.change_value)
-        self.max_voltage.valueChanged.connect(self.change_value)
-        self.min_voltage.valueChanged.connect(self.change_value)
+        self.maxVoltage.valueChanged.connect(self.change_value)
+        self.minVoltage.valueChanged.connect(self.change_value)
 
     def retranslateUi(self, apdMonitor):
         apdMonitor.setWindowTitle(QCoreApplication.translate("apdMonitor", u"MainWindow", None))
