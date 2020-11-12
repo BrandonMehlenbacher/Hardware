@@ -15,9 +15,11 @@ import pyqtgraph as pg
 from initialValues import initializeValues
 
 class Ui_QMonitor(object):
-    #def __init__(self):
-    #    names = ['frequency','minVoltage','maxVoltage','sweepFrequency','resolution']
-    #    self.values = initializeValues(names)
+    
+    def __init__(self):
+        names = ['frequency','minVoltage','maxVoltage','sweepFrequency','resolution']
+        self.values = initializeValues(names)
+        
     def setupUi(self, QMonitor):
         if not QMonitor.objectName():
             QMonitor.setObjectName(u"QMonitor")
@@ -78,6 +80,7 @@ class Ui_QMonitor(object):
         self.minVoltage.setGeometry(
             QRect(570, 370, 131, 31))
         self.minVoltage.setFont(font)
+        self.minVoltage.setMinimum(-10.000000000000000)
         self.labelMinVoltage = QLabel(self.centralwidget)
         self.labelMinVoltage.setObjectName(u"labelMinVoltage")
         self.labelMinVoltage.setGeometry(
@@ -175,7 +178,6 @@ class Ui_QMonitor(object):
             QRect(570, 530, 131, 31))
         self.sweepFrequency.setFont(font)
         self.sweepFrequency.setMaximum(1000.000000000000000)
-        
         self.labelSweepFrequency = QLabel(self.centralwidget)
         self.labelSweepFrequency.setObjectName(u"labelSweepFrequency")
         self.labelSweepFrequency.setGeometry(
@@ -203,18 +205,21 @@ class Ui_QMonitor(object):
         QMonitor.setStatusBar(self.statusbar)
 
         self.retranslateUi(QMonitor)
-
-        self.frequency.setValue(10)#self.values.getEntry("frequency"))
-        self.minVoltage.setValue(0)#self.values.getEntry("minVoltage"))
-        self.maxVoltage.setValue(10)#self.values.getEntry("maxVoltage"))
-        self.sweepFrequency.setValue(40.000000000000000)
-        self.resolution.setValue(1000000)
+        
+        # keep all of the setting values
+        self.frequency.setValue(self.values.getEntry("frequency"))
+        self.minVoltage.setValue(self.values.getEntry("minVoltage"))
+        self.maxVoltage.setValue(self.values.getEntry("maxVoltage"))
+        self.sweepFrequency.setValue(self.values.getEntry("sweepFrequency"))
+        self.resolution.setValue(self.values.getEntry("resolution"))
+        
         QMetaObject.connectSlotsByName(QMonitor)
+        
         # all of the rest of the code that I have added is below
         # If any changes are made to the ui, copy everything down
         # and only replace components above the top most comment
         # and replace the retranslateUI function.
-        self._filename = "" # this will later be part of the GUI but not today 11/03/2020
+        self._filename = ""
         self.fileLocationPath.setPlainText(self._filename)
         self.start.setEnabled(True)
         self.stop.setEnabled(True)
@@ -222,10 +227,7 @@ class Ui_QMonitor(object):
         self._timer = None
         self._active = False
         self._QCalc = None
-        self._sweepFreq = self.sweepFrequency.value() #hardcoding for now will come back later
-        self._resolution = self.resolution.value() #hardcoding for now will come back later
-        self._correction = int(self._resolution/self._sweepFreq)
-        self._x_values = (120.5/self._correction)*np.array(range(self._correction))
+        
         QMetaObject.connectSlotsByName(QMonitor)
 
         self.frequency.valueChanged.connect(self.change_value)
@@ -340,6 +342,8 @@ class Ui_QMonitor(object):
         listValues = [self.frequency.value(),
                         self.minVoltage.value(),
                         self.maxVoltage.value(),
+                        self.sweepFrequency.value(),
+                        self.resolution.value(),
                       ]
         self.values.saveValues(listValues)
         if self._active:
@@ -357,6 +361,8 @@ class Ui_QMonitor(object):
     # plots all of the values from the APD in the pyqtplot
     def qFactor(self):
         if self._active:
+            correction = int(self.resolution.value()/self.sweepFrequency.value())
+            self._x_values = (120.5/correction)*np.array(range(correction))
             self.apd_graph.clear()
             values = self._apd.read_values()
             x_values = self._x_values[0:int(len(self._x_values)/2)]
