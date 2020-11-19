@@ -155,7 +155,16 @@ class Ui_apdMonitor(object):
         self.statusbar = QStatusBar(apdMonitor)
         self.statusbar.setObjectName(u"statusbar")
         apdMonitor.setStatusBar(self.statusbar)
-
+        self.checkSweepFrequency = QCheckBox(self.centralwidget)
+        self.checkSweepFrequency.setObjectName(u"checkSweepFrequency")
+        self.checkSweepFrequency.setGeometry(QRect(730, 40, 121, 41))
+        self.checkSweepFrequency.setFont(font)
+        self.sweepFrequency = QDoubleSpinBox(self.centralwidget)
+        self.sweepFrequency.setObjectName(u"sweepFrequency")
+        self.sweepFrequency.setGeometry(QRect(730, 120, 111, 31))
+        self.sweepFrequency.setFont(font)
+        
+        self.sweepFrequency.setValue(40)
         self.frequency.setValue(10.000000000000000)
         self.maxVoltage.setValue(10)
         self.minVoltage.setValue(0)
@@ -179,6 +188,7 @@ class Ui_apdMonitor(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
+        self.checkSweepFrequency.stateChanged.connect(self.func_generation)
 
         self.save.clicked.connect(self.save_values)
     def retranslateUi(self, apdMonitor):
@@ -252,6 +262,9 @@ class Ui_apdMonitor(object):
             self.start.setEnabled(False)
             self.stop.setEnabled(True)
             self._active = True
+            if self.checkSweepFrequency.isChecked():
+                self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+                self._func_gen.write(':SOUR1;:OUTP ON;')
         except AttributeError:
             print("Make sure you selected a daq channel")
     #function for stopping the acquisition
@@ -285,6 +298,9 @@ class Ui_apdMonitor(object):
             current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.cavityName.toPlainText()+"/"+self.folderName.toPlainText()+"/"+self.comments.toPlainText()+".csv"
             self.fileLocationPath.setPlainText(self._filename)
+    def func_generation(self):
+        if self._active:
+            self.func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
