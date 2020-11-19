@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>933</width>
-    <height>438</height>
+    <width>908</width>
+    <height>701</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,8 @@
    <widget class="QGraphicsView" name="apd_graph">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>20</y>
+      <x>60</x>
+      <y>270</y>
       <width>461</width>
       <height>361</height>
      </rect>
@@ -27,10 +27,10 @@
    <widget class="QPushButton" name="start">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>270</y>
+      <x>740</x>
+      <y>380</y>
       <width>131</width>
-      <height>41</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -45,8 +45,8 @@
    <widget class="QPushButton" name="stop">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>320</y>
+      <x>740</x>
+      <y>450</y>
       <width>131</width>
       <height>51</height>
      </rect>
@@ -63,8 +63,8 @@
    <widget class="QDoubleSpinBox" name="frequency">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>230</y>
+      <x>550</x>
+      <y>540</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -84,11 +84,11 @@
      <double>10.000000000000000</double>
     </property>
    </widget>
-   <widget class="QLabel" name="label_frequency">
+   <widget class="QLabel" name="labelFrequency">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>200</y>
+      <x>550</x>
+      <y>510</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -102,11 +102,11 @@
      <string>Frequency</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_daqList">
+   <widget class="QLabel" name="labelDaqList">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>130</y>
+      <x>550</x>
+      <y>440</y>
       <width>131</width>
       <height>31</height>
      </rect>
@@ -123,8 +123,8 @@
    <widget class="QListWidget" name="daqList">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>160</y>
+      <x>550</x>
+      <y>470</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -183,11 +183,11 @@
      </property>
     </item>
    </widget>
-   <widget class="QDoubleSpinBox" name="min_voltage">
+   <widget class="QDoubleSpinBox" name="minVoltage">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>100</y>
+      <x>550</x>
+      <y>410</y>
       <width>131</width>
       <height>21</height>
      </rect>
@@ -198,13 +198,13 @@
      </font>
     </property>
    </widget>
-   <widget class="QLabel" name="label_max_voltage_2">
+   <widget class="QLabel" name="labelMinVoltage">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>75</y>
-      <width>141</width>
-      <height>21</height>
+      <x>550</x>
+      <y>380</y>
+      <width>161</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -216,13 +216,13 @@
      <string>Minimum Voltage</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_max_voltage">
+   <widget class="QLabel" name="labelMaxVoltage">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>25</y>
-      <width>141</width>
-      <height>21</height>
+      <x>550</x>
+      <y>320</y>
+      <width>181</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -234,11 +234,11 @@
      <string>Maximum Voltage</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="max_voltage">
+   <widget class="QDoubleSpinBox" name="maxVoltage">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>50</y>
+      <x>550</x>
+      <y>360</y>
       <width>131</width>
       <height>21</height>
      </rect>
@@ -249,46 +249,230 @@
      </font>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkSweepFrequency">
+   <widget class="QPlainTextEdit" name="cavityName">
     <property name="geometry">
      <rect>
-      <x>730</x>
-      <y>40</y>
-      <width>121</width>
+      <x>220</x>
+      <y>130</y>
+      <width>291</width>
       <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
-    <property name="text">
-     <string>Sweep Laser</string>
+    <property name="plainText">
+     <string>Cavity</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="sweepFrequency">
+   <widget class="QLabel" name="labelFolderName">
     <property name="geometry">
      <rect>
-      <x>730</x>
-      <y>120</y>
-      <width>111</width>
-      <height>31</height>
+      <x>540</x>
+      <y>100</y>
+      <width>131</width>
+      <height>16</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>12</pointsize>
+      <pointsize>10</pointsize>
      </font>
     </property>
+    <property name="text">
+     <string>Folder Name?</string>
+    </property>
    </widget>
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="labelComments">
     <property name="geometry">
      <rect>
-      <x>730</x>
-      <y>80</y>
+      <x>540</x>
+      <y>180</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Comments?</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelCavityName">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>100</y>
+      <width>131</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Cavity Name?</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelWhoAreYou">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>100</y>
+      <width>121</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Who Are you?</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="comments">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>210</y>
+      <width>331</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="plainText">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="whoAreYou">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>130</y>
       <width>161</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <item>
+     <property name="text">
+      <string>Brandon</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Lisa-Maria</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Beau</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Ceci</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Levi</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="labelFileLocationPath">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>10</y>
+      <width>231</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>File Location Path</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="localOrDatabackup">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>200</y>
+      <width>241</width>
       <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Local (T) / Databackup (F)</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="folderName">
+    <property name="geometry">
+     <rect>
+      <x>540</x>
+      <y>130</y>
+      <width>331</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="plainText">
+     <string>Cavity</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="fileLocationPath">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>40</y>
+      <width>841</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="save">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>520</y>
+      <width>131</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -297,7 +481,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Sweep Frequency</string>
+     <string>Save</string>
     </property>
    </widget>
   </widget>
@@ -306,8 +490,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>933</width>
-     <height>21</height>
+     <width>908</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>
