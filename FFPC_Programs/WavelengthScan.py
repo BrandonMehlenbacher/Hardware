@@ -7,11 +7,16 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
+import sys
+
+sys.path.append(r"C:\Users\bmehl\Desktop\Research_Programs\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from APD_Control.Thorlabs_APD import APD_Reader
+import pyqtgraph as pg
 
 class Ui_WavelengthScan(object):
     def setupUi(self, WavelengthScan):
