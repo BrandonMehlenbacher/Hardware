@@ -8,11 +8,14 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 import os
+from datetime import date
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from Thorlabs_APD import APD_Reader
+import numpy as np
 import pyqtgraph as pg
+import pyvisa as visa
 
 class Ui_apdMonitor(object):
     """
@@ -157,11 +160,15 @@ class Ui_apdMonitor(object):
         apdMonitor.setStatusBar(self.statusbar)
         self.checkSweepFrequency = QCheckBox(self.centralwidget)
         self.checkSweepFrequency.setObjectName(u"checkSweepFrequency")
-        self.checkSweepFrequency.setGeometry(QRect(730, 40, 121, 41))
+        self.checkSweepFrequency.setGeometry(QRect(740, 270, 121, 41))
         self.checkSweepFrequency.setFont(font)
+        self.label = QLabel(self.centralwidget)
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(740, 310, 131, 31))
+        self.label.setFont(font)
         self.sweepFrequency = QDoubleSpinBox(self.centralwidget)
         self.sweepFrequency.setObjectName(u"sweepFrequency")
-        self.sweepFrequency.setGeometry(QRect(730, 120, 111, 31))
+        self.sweepFrequency.setGeometry(QRect(740,340,131,31))
         self.sweepFrequency.setFont(font)
         
         self.sweepFrequency.setValue(40)
@@ -175,6 +182,10 @@ class Ui_apdMonitor(object):
         #If any changes are made to the ui, copy everything down
         #and only replace components above the top most comment
         #and replace the retranslateUI function.
+        self._today = date.today()
+        self._traceNum = 0
+        self._rm = visa.ResourceManager()
+        self._func_gen = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._apd = None
@@ -232,7 +243,7 @@ class Ui_apdMonitor(object):
         __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
         self.whoAreYou.setSortingEnabled(False)
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
-        ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"Brandon", None));
+        ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"Brandon Mehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
         ___qlistwidgetitem10.setText(QCoreApplication.translate("apdMonitor", u"Lisa-Maria", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
@@ -247,26 +258,25 @@ class Ui_apdMonitor(object):
         self.localOrDatabackup.setText(QCoreApplication.translate("apdMonitor", u"Local (T) / Databackup (F)", None))
         self.folderName.setPlainText(QCoreApplication.translate("apdMonitor", u"Cavity", None))
         self.save.setText(QCoreApplication.translate("apdMonitor", u"Save", None))
-        
+        self.checkSweepFrequency.setText(QCoreApplication.translate("apdMonitor", u"Sweep Laser", None))
+
+        self.label.setText(QCoreApplication.translate("apdMonitor", u"Sweep Frequency", None))
 
     #function for starting the acquisition 
     def start_acq(self):
-        try:
-            print(self.daqList.currentItem().text())
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.max_voltage.value(),min_val = self.min_voltage.value())
-            self._apd.start_acquisition()
-            self._timer = QTimer()
-            time = (1/self.frequency.value())*1000
-            self._timer.start(time)
-            self._timer.timeout.connect(self.graph_values)
-            self.start.setEnabled(False)
-            self.stop.setEnabled(True)
-            self._active = True
-            if self.checkSweepFrequency.isChecked():
-                self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
-                self._func_gen.write(':SOUR1;:OUTP ON;')
-        except AttributeError:
-            print("Make sure you selected a daq channel")
+        print(self.daqList.currentItem().text())
+        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value())
+        self._apd.start_acquisition()
+        self._timer = QTimer()
+        time = (1/self.frequency.value())*1000
+        self._timer.start(time)
+        self._timer.timeout.connect(self.graph_values)
+        self.start.setEnabled(False)
+        self.stop.setEnabled(True)
+        self._active = True
+        if self.checkSweepFrequency.isChecked():
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+            self._func_gen.write(':SOUR1;:OUTP ON;')
     #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
@@ -290,14 +300,20 @@ class Ui_apdMonitor(object):
         self._values = self._apd.read_values()
         self.apd_graph.plot(self._values)
     def save_values(self):
+        self._traceNum+=1;
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
-            self._filename = current_directory+"\\"+self.whoAreYou.currentItem().text()+"\\"+self.cavityName.toPlainText()+"\\"+self.folderName.toPlainText()+"\\"+self.comments.toPlainText()+".csv"
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
             current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
-            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.cavityName.toPlainText()+"/"+self.folderName.toPlainText()+"/"+self.comments.toPlainText()+".csv"
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
+        saveValues = np.array(self._values)
+        os.makedirs(directory)
+        np.savetxt(self._filename,saveValues)
     def func_generation(self):
         if self._active:
             self.func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
