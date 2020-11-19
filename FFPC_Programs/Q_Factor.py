@@ -219,6 +219,7 @@ class Ui_QMonitor(object):
         # If any changes are made to the ui, copy everything down
         # and only replace components above the top most comment
         # and replace the retranslateUI function.
+        self._traceNum = 0
         self._filename = ""
         self.fileLocationPath.setPlainText(self._filename)
         self.start.setEnabled(True)
@@ -376,19 +377,21 @@ class Ui_QMonitor(object):
             self.Value_Q_Factor.display(780000/sigma)  # roughly the wavelength in picometers
             newYValues = self._QCalc.getNewYVal()
             self.apd_graph.plot(x_values, newYValues)
+            self._traceNum+=1;
             dataframe.to_csv(self._filename)
 
     def change_filename(self):
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
-            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.cavityName.toPlainText()+"/"+self.folderName.toPlainText()+"/"+self.comments.toPlainText()+"Q-Factor.csv"
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
-            current_directory = "//marlin.chem.wisc.edu/Groups \
-                                /Goldsmith Group/X/dataBackup/ELN_Data"
-            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.cavityName.toPlainText()+"/"+self.folderName.toPlainText()+"/"+self.comments.toPlainText()+"Q-Factor.csv"
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
-
+        os.makedirs(directory)
 
 # Feel free to copy and paste the line below in other GUIs you make
 # just make sure to change names within it
