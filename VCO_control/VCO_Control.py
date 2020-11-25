@@ -121,9 +121,10 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
+        self._vcoTask = nidaqmx.Task()
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        #self.daq_port = device_1.ao_physical_chans['ao1'] # connects to the 1 analog output channel from the 1st device
-        self.stop_button.clicked.connect(QtWidgets.qApp.quit) # this will terminate the window and close the program
+        self._vcoControl = self._vcoTask.ao_channels.add_ao_voltage_chan("Dev1/ao0") # connects to the 1 analog output channel from the 1st device
+        self.stop_button.clicked.connect(self.stop_but) # this will terminate the window and close the program
         self.frequency_adjustment.valueChanged.connect(self.change_voltage_VCO)
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -145,7 +146,11 @@ class Ui_MainWindow(object):
         starting_value = 198.99
         slider_value = (self.frequency_adjustment.value()/1000)
         self.frequency_display.display(starting_value+slider_value*1.3908)
-        #self.daq_port.write(slider_value)
+        self._vcoTask.write(slider_value)
+    def stop_but(self):
+        self._vcoTask.stop()
+        self._vcoTask.close()
+        QtWidgets.qApp.quit()
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)

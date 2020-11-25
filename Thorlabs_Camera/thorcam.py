@@ -18,7 +18,6 @@ class CameraOpenError(Exception):
         return self.mesg
 
 class thorcam(QtCore.QThread):
-    
     def __init__(self,filepath= Path('C:\\Program Files\\Thorlabs\\Scientific Imaging\\ThorCam\\uc480_64.dll'),
                  bit_depth=8,roi_shape=(1024,1024),exposure = 0.01, frame_rate = 10,
                  roi_pos = (0,0),memory=None):
@@ -32,6 +31,7 @@ class thorcam(QtCore.QThread):
         if init_camera_failure:
             raise CameraOpenError(f"Camera failed to open error code {init_camera_failure}")
         else:
+            self.thorcam.is_SetColorMode(self.handle, 6) 
             self.roi_shape = roi_shape
             self.frame_rate =  frame_rate
             self.roi_pos = roi_pos
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     count = 0
     my_figure = plt.figure()
     while count < 100:
-        #time.sleep(0.01)
+        time.sleep(0.01)
         mycam.show_image(my_figure)
         #mycam.image_clear(my_figure)
         count +=1

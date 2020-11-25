@@ -21,8 +21,8 @@ class Motor(object):
         self._serial_number = None
         self._current_position = 0
         for values in apt.list_available_devices():
-            if serial_number == values[0]
-                self._motor = = apt.Motor(serial_number)
+            if serial_number == values[1]:
+                self._motor = apt.Motor(serial_number)
                 self._serial_number = serial_number
         if self._motor == None:
             print("Input an invalid serial number")

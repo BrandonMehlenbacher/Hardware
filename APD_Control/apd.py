@@ -9,9 +9,11 @@
 ################################################################################
 import os
 from datetime import date
+
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+
 from Thorlabs_APD import APD_Reader
 import numpy as np
 import pyqtgraph as pg
@@ -233,7 +235,7 @@ class Ui_apdMonitor(object):
 
         self.labelMinVoltage.setText(QCoreApplication.translate("apdMonitor", u"Minimum Voltage", None))
         self.labelMaxVoltage.setText(QCoreApplication.translate("apdMonitor", u"Maximum Voltage", None))
-        self.cavityName.setPlainText(QCoreApplication.translate("apdMonitor", u"Cavity", None))
+        self.cavityName.setPlainText(QCoreApplication.translate("apdMonitor", u"F15P2_Planar", None))
         self.labelFolderName.setText(QCoreApplication.translate("apdMonitor", u"Folder Name?", None))
         self.labelComments.setText(QCoreApplication.translate("apdMonitor", u"Comments?", None))
         self.labelCavityName.setText(QCoreApplication.translate("apdMonitor", u"Cavity Name?", None))
@@ -256,7 +258,7 @@ class Ui_apdMonitor(object):
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("apdMonitor", u"File Location Path", None))
         self.localOrDatabackup.setText(QCoreApplication.translate("apdMonitor", u"Local (T) / Databackup (F)", None))
-        self.folderName.setPlainText(QCoreApplication.translate("apdMonitor", u"Cavity", None))
+        self.folderName.setPlainText(QCoreApplication.translate("apdMonitor", u"Raman", None))
         self.save.setText(QCoreApplication.translate("apdMonitor", u"Save", None))
         self.checkSweepFrequency.setText(QCoreApplication.translate("apdMonitor", u"Sweep Laser", None))
 
@@ -275,7 +277,8 @@ class Ui_apdMonitor(object):
         self.stop.setEnabled(True)
         self._active = True
         if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50;')
+            #self._func_gen.write(f':SOUR1:;FUNC:RAMP:SYMM 40;')
             self._func_gen.write(':SOUR1;:OUTP ON;')
     #function for stopping the acquisition
     def stop_acq(self):
@@ -286,6 +289,8 @@ class Ui_apdMonitor(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
+        if self.checkSweepFrequency.isChecked():
+            self._func_gen.write(':SOUR1;:OUTP OFF;')
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
@@ -294,6 +299,9 @@ class Ui_apdMonitor(object):
             self._apd = None
             self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),)
             self._apd.start_acquisition()
+            time = (1/self.frequency.value())*1000
+            self._timer.start(time)
+            self._timer.timeout.connect(self.graph_values)
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
         self.apd_graph.clear()
@@ -301,6 +309,10 @@ class Ui_apdMonitor(object):
         self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
+        stopped = False
+        if self._active:
+            self.stop_acq()
+            stopped = True
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
@@ -312,11 +324,14 @@ class Ui_apdMonitor(object):
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         saveValues = np.array(self._values)
-        os.makedirs(directory)
+        if not os.path.isdir(directory):
+            os.makedirs(directory)
         np.savetxt(self._filename,saveValues)
+        if stopped:
+            self.start_acq()
     def func_generation(self):
         if self._active:
-            self.func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
