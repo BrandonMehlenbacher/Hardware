@@ -16,6 +16,7 @@ from PySide2.QtWidgets import *
 
 from Thorlabs_APD import APD_Reader
 import numpy as np
+from statistics import mean
 import pyqtgraph as pg
 import pyvisa as visa
 
@@ -271,15 +272,15 @@ class Ui_apdMonitor(object):
         self._apd.start_acquisition()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
+        #self._timed_values= np.zeros(int(3600/time))
+        #self._max_count = self._timed_values.size
+        #self.counter = 0
         self._timer.start(time)
         self._timer.timeout.connect(self.graph_values)
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
         self._active = True
-        if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50;')
-            #self._func_gen.write(f':SOUR1:;FUNC:RAMP:SYMM 40;')
-            self._func_gen.write(':SOUR1;:OUTP ON;')
+
     #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
@@ -289,8 +290,7 @@ class Ui_apdMonitor(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
-        if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(':SOUR1;:OUTP OFF;')
+        
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
@@ -306,6 +306,8 @@ class Ui_apdMonitor(object):
     def graph_values(self):
         self.apd_graph.clear()
         self._values = self._apd.read_values()
+        #self._timed_values[self.counter] = mean(self._values)
+        #self.counter += 1;
         self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
@@ -327,11 +329,16 @@ class Ui_apdMonitor(object):
         if not os.path.isdir(directory):
             os.makedirs(directory)
         np.savetxt(self._filename,saveValues)
+        np.savetxt(self._filename,self._timed_values)
         if stopped:
             self.start_acq()
     def func_generation(self):
-        if self._active:
+        if self.checkSweepFrequency.isChecked():
             self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+            self._func_gen.write(':SOUR1;:OUTP ON;')
+        else:
+            self._func_gen.write(':SOUR1;:OUTP OFF;')
+
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
