@@ -334,7 +334,7 @@ class Ui_apdMonitor(object):
             self.start_acq()
     def func_generation(self):
         if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50')
             self._func_gen.write(':SOUR1;:OUTP ON;')
         else:
             self._func_gen.write(':SOUR1;:OUTP OFF;')
