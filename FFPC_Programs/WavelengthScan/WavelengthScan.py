@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'Wavelength_ScanRzfkji.ui'
+## Form generated from reading UI file 'Wavelength_ScanjEsUCh.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.15.1
 ##
@@ -150,10 +150,19 @@ class Ui_WavelengthScan(object):
         self.currentValue = QLCDNumber(self.splitterActualValues)
         self.currentValue.setObjectName(u"currentValue")
         self.splitterActualValues.addWidget(self.currentValue)
+        self.desiredLaser = QListWidget(self.centralwidget)
+        QListWidgetItem(self.desiredLaser)
+        QListWidgetItem(self.desiredLaser)
+        self.desiredLaser.setObjectName(u"desiredLaser")
+        self.desiredLaser.setGeometry(QRect(40, 450, 161, 41))
+        self.labelDesiredLaser = QLabel(self.centralwidget)
+        self.labelDesiredLaser.setObjectName(u"labelDesiredLaser")
+        self.labelDesiredLaser.setGeometry(QRect(40, 420, 121, 21))
+        self.labelDesiredLaser.setFont(font1)
         WavelengthScan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(WavelengthScan)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 964, 26))
+        self.menubar.setGeometry(QRect(0, 0, 964, 21))
         WavelengthScan.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(WavelengthScan)
         self.statusbar.setObjectName(u"statusbar")
@@ -183,13 +192,15 @@ class Ui_WavelengthScan(object):
         self.labelPiezoVoltage.setText(QCoreApplication.translate("WavelengthScan", u"Piezo Voltage (%)", None))
         self.labelWavelengthValue.setText(QCoreApplication.translate("WavelengthScan", u"Wavelength (nm)", None))
         self.labelCurrentValue.setText(QCoreApplication.translate("WavelengthScan", u"Current (mA)", None))
+
+        __sortingEnabled = self.desiredLaser.isSortingEnabled()
+        self.desiredLaser.setSortingEnabled(False)
+        ___qlistwidgetitem = self.desiredLaser.item(0)
+        ___qlistwidgetitem.setText(QCoreApplication.translate("WavelengthScan", u"6700 SN41044", None));
+        ___qlistwidgetitem1 = self.desiredLaser.item(1)
+        ___qlistwidgetitem1.setText(QCoreApplication.translate("WavelengthScan", u"6700 SN18084", None));
+        self.desiredLaser.setSortingEnabled(__sortingEnabled)
+
+        self.labelDesiredLaser.setText(QCoreApplication.translate("WavelengthScan", u"Desired Laser", None))
     # retranslateUi
-#Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
-if __name__ == "__main__":
-    import sys
-    app = QApplication(sys.argv)
-    WavelengthScan = QMainWindow()
-    ui = Ui_WavelengthScan()
-    ui.setupUi(WavelengthScan)
-    WavelengthScan.show()
-    sys.exit(app.exec_())
+

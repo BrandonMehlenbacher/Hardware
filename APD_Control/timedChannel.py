@@ -280,7 +280,10 @@ class Ui_apdMonitor(object):
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
         self._active = True
-
+        if self.checkSweepFrequency.isChecked():
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50;')
+            #self._func_gen.write(f':SOUR1:;FUNC:RAMP:SYMM 40;')
+            self._func_gen.write(':SOUR1;:OUTP ON;')
     #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
@@ -290,7 +293,8 @@ class Ui_apdMonitor(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
-        
+        if self.checkSweepFrequency.isChecked():
+            self._func_gen.write(':SOUR1;:OUTP OFF;')
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
@@ -333,11 +337,8 @@ class Ui_apdMonitor(object):
         if stopped:
             self.start_acq()
     def func_generation(self):
-        if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50')
-            self._func_gen.write(':SOUR1;:OUTP ON;')
-        else:
-            self._func_gen.write(':SOUR1;:OUTP OFF;')
+        if self._active:
+            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
 
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":

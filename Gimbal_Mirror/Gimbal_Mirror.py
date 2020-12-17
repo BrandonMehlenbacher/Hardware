@@ -7,14 +7,15 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
-
+import sys
+sys.path.append(r"C:\Users\Goldsmith\Desktop\Hardware") #this adds a path to the hardware directory so I have access to all of the different packages I make
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 import pyqtgraph as pg
 import thorlabs_apt as apt
 from instrumental import instrument, list_instruments
-from motor_control import Motor
+from Thorlabs_Motor.motor_control import Motor
 
 
 
@@ -132,10 +133,10 @@ class Ui_GimbalMirrors(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
     def change_x_axis(self):
-        x_axis_value = self.x_axis.value()/10000
+        x_axis_value = self.x_axis.value()/100000
         self._x_motor.move_absolute(x_axis_value)
     def change_y_axis(self):
-        y_axis_value = self.y_axis.value()/10000
+        y_axis_value = self.y_axis.value()/100000
         self._y_motor.move_absolute(y_axis_value)
     def view_camera(self):
         self.camera_view.setImage(self._camera.latest_frame())

@@ -6,6 +6,7 @@ class initializeValues(object):
         self.filename = filename
         self.names = names
         self.initialValues = self.getInitialValues(names)
+
     def getInitialValues(self,names):
         currentDict = dict()
         path = pathlib.Path(self.filename)
@@ -15,32 +16,39 @@ class initializeValues(object):
                 for name, value in reader:
                     currentDict[name] = value
         else:
-            valuesList = []
             for name in names:
-                value = int(input(f"For {name} what do you want the saved value? "))
+                value = float(input(f"For {name} what do you want the saved value? "))
                 currentDict[name] = value
-                valuesList.append(value)
-            self.saveValues(valuesList)
+            self.saveValues(None,currentDict = currentDict)
         return currentDict
+
     def listEntries(self):
         for name,value in self.initialValues.items():
             print(name,value)
+
     def getEntry(self,name):
         if name in self.initialValues.keys():
-            return self.initialValues[name]
+            return float(self.initialValues[name])
         else:
             sys.exit("value does not exist, please make sure you entered everything correctly")
+
     def changeValues(self,values):
         nameList = self.names
         for i in range(len(nameList)):
-            print(nameList[i])
             self.initialValues[nameList[i]] = values[i]
-    def saveValues(self,values):
-        self.changeValues(values)
+            
+    def saveValues(self,values,currentDict=None):
+        path = pathlib.Path(self.filename)
+        if path.is_file():
+            self.changeValues(values)
+            savedDict = self.initialValues
+        else:
+            savedDict = currentDict
         with open(self.filename,'w',newline = '') as file:
             writer = csv.writer(file,delimiter=',')
-            for name,value in self.initialValues.items():
+            for name,value in savedDict.items():
                 writer.writerow([name,value])
+        self._is_file = True
 
 if __name__ == "__main__":
     initializer = initializeValues()
