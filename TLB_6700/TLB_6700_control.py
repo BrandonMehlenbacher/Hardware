@@ -14,33 +14,34 @@ from System.Collections import Hashtable
 driver_path = 'C:\\Program Files\\Newport\\Newport USB Driver\\Bin\\UsbDllWrap.dll'
 Assembly.LoadFile(driver_path)
 clr.AddReference(r'UsbDllWrap')
-
-
 import Newport
 
 class TLB_6700_controller(object):
-    def __init__(self,desired_Laser):
+    def __init__(self,desiredLaser):
         self._newport_devices = Newport.USBComm.USB()
-        self._desired_laser = desired_laser
-        self._newport_devices.OpenDevices()
-        self._newport_device_info = newport_devices.GetDevInfoList()
+        self._desired_laser = desiredLaser
+        self._newport_devices.OpenDevices(0, False)
+        self._newport_device_info = self._newport_devices.GetDevInfoList()
         self._lasers_lab = ["SN18084","SN41044"] #this is a list of the laser controllers we have in lab
         self._ID_list = [1] #only able to use one laser until i figure out the issue with device key or ID
-        self._controllers = self.controllers_list(newport_device_info)
+        self._controllers = self.controllers_list(self._newport_device_info)
+        if len(self._controllers) == 0:
+            print("there was an issue initalizing the controller")
+            sys.exit()
+        print(self._controllers)
         self.set_IDs_Newport(self._controllers)
         self._current_wavelength = 0
         self._current = 40 # this will be in mA
         self._turned_on = 0 #if any laser is turned on
         self._piezo_voltage = 0
         self._lasing_power = 0
-        self._wavelength_range = self.set_wavelength_range() # list of the wavelegnths of the laser we want
-        
+        self._wavelength_range = [[]] # list of list of wavelength ranges for the lasers
         self._scanning_range = []
-        self.set_wavelength_range()
+        #self.set_wavelength_range()
         #self.initialize_laser_conditions()
     def intialize_laser_conditions(self):
         pass
-    def set_IDs_Newport(array_list):
+    def set_IDs_Newport(self,array_list):
         for x in range(len(array_list)):
             if (array_list[x].get_Description()[29:] == self._desired_laser):
                 array_list[x].set_ID(1)
@@ -62,14 +63,12 @@ class TLB_6700_controller(object):
                 controller_list.append(USB_controllers[controller])
         return controller_list
     def set_wavelength_range(self):
-        wavelengthRange = []
         string_MIN = StringBuilder()
         string_MAX = StringBuilder()
-        #for x in range(len(array_list)):
-        self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MAX?',string_MAX)
-        newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MIN?',string_MIN)
-        wavelengthRange.append([int(string_MIN),int(string_MAX)])
-        return wavelengthRange
+        for x in range(len(array_list)):
+            self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MAX?',string_MAX)
+            self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MIN?',string_MIN)
+            self._wavelength_range.append([string_MIN,string_MAX])
     def laser_status(self,status):
         """
         inputs:
@@ -77,6 +76,10 @@ class TLB_6700_controller(object):
         """
         self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {status}')
         self._turned_on = status
+    def turnOn(self):
+        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {1}')
+    def turnOff(self):
+        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {0}')
     @property
     def turned_on(self):
         return self._turned_on
@@ -85,7 +88,7 @@ class TLB_6700_controller(object):
         return self._current_wavelength
     @wavelength.setter
     def wavelength(self):
-        wavelenth_string = StringBuilder()
+        wavelength_string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'SENSE:WAVE?',wavelength_string)
         self._current_wavelength = int(wavelength_string)
     @property
@@ -105,12 +108,13 @@ class TLB_6700_controller(object):
         desired current: this is the current (or power) desired from the laser, enter in mA
         """
         current_string = StringBuilder()
-        desired_current = desired_current/1000 #this allows user to enter the value in mA
-        self._newport_devices.Query(self._ID_list[0],f'SOURCE:CURRENT:DIODE {desired_current}',current_string)
-        self._current = int(current_string)
+        desired_current = desired_current #this allows user to enter the value in mA
+        #self._newport_devices.Query(self._ID_list[0],f'SOURCE:CURRENT:DIODE {desired_current}',current_string)
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:CURRENT:DIODE {desired_current}')
+        self._current = desired_current
     @property
     def scanning_range(self):
-        print(f"The scan starts at {self._scanning_range[0]} and ends at {self._scanning_range[1]"}
+        print(f"The scan starts at {self._scanning_range[0]} and ends at {self._scanning_range[1]}")
         return self._scanning
     @scanning_range.setter
     def scanning_range(self,start,end):
@@ -119,7 +123,7 @@ class TLB_6700_controller(object):
         if start < self._wavelength_range[0]:
             print(f"Start is less than the minimum range {self._wavelength_range[0]}, input valid number")
             exit()
-        else if end > self._wavelength_range[1]:
+        elif end > self._wavelength_range[1]:
             print(f"Start is greater than the maximum range {self._wavelength_range[1]}, input valid number")
             exit()
         self._newport_devices.Query(self._ID_list[0],f'SOURCE:WAVE:START {start}',start_scan)        
@@ -136,42 +140,46 @@ class TLB_6700_controller(object):
     def start_scan(self,number_of_scans):
         self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVE:DESSCANS {number_of_scans}')
         self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVE:START')
+    def close_devices(self):
+        self._newport_devices.CloseDevices()
 #new_port_devices = Newport.USBComm.USB()
-#new_port_device_info = new_port_devices.GetDevInfoList()
+
 lasers = ["SN18084","SN41044"]
 def set_IDs_Newport(array_list):
     for x in range(len(array_list)):
-        #print(array_list[x].get_Description())
+        print(array_list[x].get_Description())
         """
         if (array_list[x].get_Description()[29:] == lasers[0]):
             array_list[x].set_ID(0)
         elif (array_list[x].get_Description()[29:] == lasers[1]):
               array_list[x].set_ID(1)
         """
-my_array = []
-my_device = Newport.USBComm.USB()
-my_device.OpenDevices(0,False)
+#my_array = []
+#new_port_devices = Newport.USBComm.USB()
+#device_key = '6700 SN18084'
+#my_device.OpenDevices("New_Focus 6700 v2.4 03/19/14 SN41044",usingDeviceKey = True)
+#new_port_devices.OpenDevices(device_key,usingDeviceKey=True)
+#print(len(new_port_device_info))
+
+#set_IDs_Newport(new_port_device_info)
 #my_device.OpenDevices(0x100A)
 #my_table = Hashtable()
-my_device.GetDeviceTable()
+#my_device.GetDeviceTable()
 #print(my_device.GetDeviceTable())
-#my_device.OpenDevices("6700 SN18084",usingDeviceKey = True)
-#my_device.OpenDevices("New_Focus 6700 v2.4 03/19/14 SN41044",usingDeviceKey = True)
-my_array = my_device.GetDevInfoList()
+
+#my_device.OpenDevices(myString,usingDeviceKey = True)
+#my_device.get_Description()
+
+#my_array = my_device.GetDevInfoList()
 #help(my_array[0])
 #my_array[0])
 
-set_IDs_Newport(my_array)
-string = StringBuilder()
+#set_IDs_Newport(my_array)
+#string = StringBuilder()
 #time.sleep(1)
-device_key = '6700 SN18084'
-#device = "6700SN18084"
-for x in range(len(my_array)):
-    time.sleep(1)
-    my_device.Write(device_key,'*IDN?')
-    my_device.Read(device_key,string)
-#print(string)
 
+#device = "6700SN18084"
+#print(string)
 
 #my_device.Write(1,'OUTP:STAT {1}')
 #time.sleep(3)
@@ -180,6 +188,15 @@ for x in range(len(my_array)):
 #my_device.Write(1,'OUTP:STAT {0}')
 #time.sleep(3)
 #my_device.Write(0,'OUTP:STAT {0}')
-my_device.CloseDevices()
+#new_port_devices.CloseDevices()
 
-
+if __name__ == '__main__':
+    laser = TLB_6700_controller("SN41044")
+    laser.current = 55
+    #time.sleep(1)
+    #print(laser.current)
+    laser.turnOn()
+    time.sleep(20)
+    laser.turnOff()
+    time.sleep(10)
+    laser.close_devices()
