@@ -33,7 +33,8 @@ class TLB_6700_controller(object):
         self._turned_on = 0 #if any laser is turned on
         self._piezo_voltage = 0
         self._lasing_power = 0
-        self._wavelength_range = [[]] # list of list of wavelength ranges for the lasers
+        self._wavelength_range = self.set_wavelength_range() # list of the wavelegnths of the laser we want
+        
         self._scanning_range = []
         self.set_wavelength_range()
         #self.initialize_laser_conditions()
@@ -61,12 +62,14 @@ class TLB_6700_controller(object):
                 controller_list.append(USB_controllers[controller])
         return controller_list
     def set_wavelength_range(self):
+        wavelengthRange = []
         string_MIN = StringBuilder()
         string_MAX = StringBuilder()
         #for x in range(len(array_list)):
         self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MAX?',string_MAX)
         newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MIN?',string_MIN)
-        self._wavelength_range.append([int(string_MIN),int(string_MAX)])
+        wavelengthRange.append([int(string_MIN),int(string_MAX)])
+        return wavelengthRange
     def laser_status(self,status):
         """
         inputs:
