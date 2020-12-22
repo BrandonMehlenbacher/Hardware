@@ -14,9 +14,8 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
-from Thorlabs_APD import APD_Reader
+from Thorlabs_APD import APD_Reader,timedChannel
 import numpy as np
-from statistics import mean
 import pyqtgraph as pg
 import pyvisa as visa
 
@@ -187,6 +186,8 @@ class Ui_apdMonitor(object):
         #and replace the retranslateUI function.
         self._today = date.today()
         self._traceNum = 0
+        self._graphedValues = list()
+        self._time = 0 #accounts for later things
         self._rm = visa.ResourceManager()
         self._func_gen = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
         self.start.setEnabled(True)
@@ -196,12 +197,12 @@ class Ui_apdMonitor(object):
         self._active = False
         self._values = None
         QMetaObject.connectSlotsByName(apdMonitor)
-        self.frequency.valueChanged.connect(self.change_value)
+        #self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
         self.stop.clicked.connect(self.stop_acq)
-        self.daqList.currentItemChanged.connect(self.change_value)
-        self.maxVoltage.valueChanged.connect(self.change_value)
-        self.minVoltage.valueChanged.connect(self.change_value)
+        #self.daqList.currentItemChanged.connect(self.change_value)
+        #self.maxVoltage.valueChanged.connect(self.change_value)
+        #self.minVoltage.valueChanged.connect(self.change_value)
         self.checkSweepFrequency.stateChanged.connect(self.func_generation)
 
         self.save.clicked.connect(self.save_values)
@@ -264,61 +265,42 @@ class Ui_apdMonitor(object):
         self.checkSweepFrequency.setText(QCoreApplication.translate("apdMonitor", u"Sweep Laser", None))
 
         self.label.setText(QCoreApplication.translate("apdMonitor", u"Sweep Frequency", None))
-
+    
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
-        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value())
-        self._apd.start_acquisition()
-        self._timer = QTimer()
-        time = (1/self.frequency.value())*1000
-        #self._timed_values= np.zeros(int(3600/time))
-        #self._max_count = self._timed_values.size
-        #self.counter = 0
-        self._timer.start(time)
-        self._timer.timeout.connect(self.graph_values)
+        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),
+                               max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
         self._active = True
         if self.checkSweepFrequency.isChecked():
             self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50;')
-            #self._func_gen.write(f':SOUR1:;FUNC:RAMP:SYMM 40;')
             self._func_gen.write(':SOUR1;:OUTP ON;')
+        pool = QThreadPool.globalInstance()
+        self.worker = timedChannel(self._apd,10) #100s currently
+        self.worker.signals.progress.connect(self.graph_values)
+        pool.start(self.worker)
+        
     #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
         self._apd.close_daq()
         self._apd = None
-        self._timer.stop()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
         if self.checkSweepFrequency.isChecked():
             self._func_gen.write(':SOUR1;:OUTP OFF;')
-    #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
-    def change_value(self):
-        if self._active:
-            self._apd.stop_acquisition()
-            self._apd.close_daq()
-            self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),)
-            self._apd.start_acquisition()
-            time = (1/self.frequency.value())*1000
-            self._timer.start(time)
-            self._timer.timeout.connect(self.graph_values)
+    
     #plots all of the values from the APD in the pyqtplot
-    def graph_values(self):
+    def graph_values(self,values):
+        self._graphedValues.append(values)
         self.apd_graph.clear()
-        self._values = self._apd.read_values()
-        #self._timed_values[self.counter] = mean(self._values)
-        #self.counter += 1;
-        self.apd_graph.plot(self._values)
+        self.apd_graph.plot(self._graphedValues)
     def save_values(self):
         self._traceNum+=1;
         stopped = False
-        if self._active:
-            self.stop_acq()
-            stopped = True
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
@@ -329,13 +311,14 @@ class Ui_apdMonitor(object):
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
-        saveValues = np.array(self._values)
+        lenGraphedValues = len(self._graphedValues)
+        timeArray = np.array(range(lenGraphedValues))
+        saveValues = np.zeros(((lenGraphedValues,2)))
+        saveValues[:,0] = timeArray
+        saveValues[:,1] = self._graphedValues
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        np.savetxt(self._filename,saveValues)
-        np.savetxt(self._filename,self._timed_values)
-        if stopped:
-            self.start_acq()
+        np.savetxt(self._filename,saveValues,delimiter=",")
     def func_generation(self):
         if self._active:
             self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;:SYMM 50')
