@@ -6,229 +6,259 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1120</width>
-    <height>870</height>
+    <width>561</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGraphicsView" name="waveform_chart">
+   <widget class="QGraphicsView" name="clsPlot">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>350</y>
-      <width>301</width>
-      <height>211</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QGraphicsView" name="l_t_graph_2">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>590</y>
-      <width>301</width>
-      <height>211</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QGraphicsView" name="waveform_chart_2">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>350</y>
-      <width>301</width>
-      <height>211</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QGraphicsView" name="l_t_graph">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>590</y>
-      <width>301</width>
-      <height>211</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_waveform_chart">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
+      <x>30</x>
       <y>330</y>
+      <width>351</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelCLSPlot">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>310</y>
       <width>191</width>
       <height>16</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Waveform Chart 2</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_l_t_graph_2">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>570</y>
-      <width>111</width>
-      <height>16</height>
-     </rect>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
-     <string>L-T Graph 2</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_l_t_graph">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>570</y>
-      <width>111</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>L-T Graph</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_waveform_chart_2">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>330</y>
-      <width>191</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Waveform Chart</string>
+     <string>CLS Scan</string>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="offset">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>280</y>
-      <width>62</width>
+      <x>310</x>
+      <y>290</y>
+      <width>71</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.200000000000000</double>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="phase">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>280</y>
-      <width>62</width>
+      <x>420</x>
+      <y>290</y>
+      <width>71</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="maximum">
+     <double>360.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>270.000000000000000</double>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="amplitude">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>230</y>
-      <width>62</width>
+      <x>310</x>
+      <y>240</y>
+      <width>71</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
+    </property>
+    <property name="value">
+     <double>0.200000000000000</double>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="frequency">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>230</y>
-      <width>62</width>
+      <x>420</x>
+      <y>240</y>
+      <width>71</width>
       <height>22</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="value">
+     <double>10.000000000000000</double>
+    </property>
    </widget>
-   <widget class="QLabel" name="label_amplitude">
+   <widget class="QLabel" name="labelAmplitude">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>210</y>
+      <x>310</x>
+      <y>220</y>
       <width>71</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Amplitude</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_frequency">
+   <widget class="QLabel" name="labelFrequency">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>210</y>
+      <x>420</x>
+      <y>220</y>
       <width>71</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Frequency</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_offset">
+   <widget class="QLabel" name="labelOffset">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>260</y>
+      <x>310</x>
+      <y>270</y>
       <width>71</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Offset</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_phase">
+   <widget class="QLabel" name="labelPhase">
     <property name="geometry">
      <rect>
-      <x>550</x>
-      <y>260</y>
+      <x>420</x>
+      <y>270</y>
       <width>71</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Phase</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="doubleSpinBox">
+   <widget class="QDoubleSpinBox" name="waitTime">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>170</y>
-      <width>62</width>
+      <x>420</x>
+      <y>340</y>
+      <width>71</width>
       <height>22</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
-   <widget class="QLabel" name="label_wait_time">
+   <widget class="QLabel" name="labelWaitTime">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>150</y>
+      <x>420</x>
+      <y>320</y>
       <width>71</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Wait Time</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="stop">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>210</y>
+      <x>410</x>
+      <y>450</y>
       <width>111</width>
       <height>51</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Stop</string>
@@ -237,24 +267,36 @@
    <widget class="QPushButton" name="capture">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>280</y>
+      <x>410</x>
+      <y>510</y>
       <width>111</width>
       <height>51</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Capture</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="whoAreYou">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>170</y>
-      <width>201</width>
+      <x>30</x>
+      <y>160</y>
+      <width>231</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <item>
      <property name="text">
@@ -280,149 +322,276 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>150</y>
+      <x>30</x>
+      <y>140</y>
       <width>101</width>
       <height>16</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="text">
-     <string>Who Are you</string>
+     <string>Who Are You</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_2">
+   <widget class="QLabel" name="labelCavity">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>150</y>
+      <x>300</x>
+      <y>140</y>
       <width>55</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Cavity</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="daq_channel">
+   <widget class="QListWidget" name="daqList">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>240</y>
+      <x>30</x>
+      <y>220</y>
       <width>111</width>
       <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="currentRow">
+     <number>0</number>
+    </property>
+    <item>
+     <property name="text">
+      <string>Dev1/ai0</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai1</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai2</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai3</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai4</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai5</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai6</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>Dev1/ai7</string>
+     </property>
+    </item>
    </widget>
-   <widget class="QLabel" name="label_3">
+   <widget class="QLabel" name="labelDaqChannel">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>220</y>
+      <x>30</x>
+      <y>200</y>
       <width>111</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>DAQ Channel</string>
     </property>
    </widget>
-   <widget class="QDoubleSpinBox" name="single_channel_m">
+   <widget class="QDoubleSpinBox" name="singleChannelM">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>300</y>
-      <width>62</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QDoubleSpinBox" name="single_channel_m_2">
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>300</y>
-      <width>62</width>
-      <height>22</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_single_channel_m">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
+      <x>30</x>
       <y>280</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="value">
+     <double>10.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="singleChannelM2">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>280</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="value">
+     <double>10.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelSingleChannelM">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>260</y>
       <width>111</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Single Channel M</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_single_channel_m_2">
+   <widget class="QLabel" name="labelSingleChannelM2">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>280</y>
+      <x>170</x>
+      <y>260</y>
       <width>111</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Single Channel M</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="cavity">
+   <widget class="QTextEdit" name="cavityName">
     <property name="geometry">
      <rect>
-      <x>420</x>
-      <y>170</y>
-      <width>161</width>
+      <x>300</x>
+      <y>160</y>
+      <width>191</width>
       <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
-   <widget class="QPlainTextEdit" name="saving_folder">
+   <widget class="QPlainTextEdit" name="folderName">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>106</y>
-      <width>661</width>
+      <x>30</x>
+      <y>100</y>
+      <width>231</width>
       <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
-   <widget class="QLabel" name="label_saving_folder">
+   <widget class="QLabel" name="labelSavingFolder">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>30</x>
       <y>80</y>
       <width>181</width>
       <height>16</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="text">
      <string>Saving Folder</string>
     </property>
    </widget>
-   <widget class="QPlainTextEdit" name="filename_comments">
+   <widget class="QPlainTextEdit" name="filenameComments">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>170</y>
-      <width>161</width>
+      <x>300</x>
+      <y>100</y>
+      <width>191</width>
       <height>31</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
    </widget>
-   <widget class="QLabel" name="label_filename_comments">
+   <widget class="QLabel" name="labelFilenameComments">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>150</y>
+      <x>300</x>
+      <y>80</y>
       <width>131</width>
       <height>16</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>Filename Comments</string>
@@ -431,14 +600,55 @@
    <widget class="QPushButton" name="start">
     <property name="geometry">
      <rect>
-      <x>620</x>
-      <y>210</y>
+      <x>410</x>
+      <y>390</y>
       <width>111</width>
       <height>51</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
     <property name="text">
      <string>Start</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="folderName_2">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>40</y>
+      <width>461</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="fileLocationPath">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>20</y>
+      <width>181</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>File Location Path</string>
     </property>
    </widget>
   </widget>
@@ -447,8 +657,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1120</width>
-     <height>26</height>
+     <width>561</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>
