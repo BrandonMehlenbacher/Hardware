@@ -8,17 +8,21 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 import os
+import sys
 from datetime import date
 
+sys.path.append(r"C:\Users\Goldsmith\Desktop\Hardware")
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from Thorlabs_APD import APD_Reader
+from Miscellaneous.functionGenerator import FunctionGenerator
 import numpy as np
 from statistics import mean
 import pyqtgraph as pg
 import pyvisa as visa
+
 
 class Ui_apdMonitor(object):
     """
@@ -32,7 +36,6 @@ class Ui_apdMonitor(object):
     open the GUI. After it is open, the frequency, board input channel, and the max and min voltage can all be changed while running the program
     To stop data acquisition, simply hit the stop button and it will terminate
 
-    
     """
     def setupUi(self, apdMonitor):
         if not apdMonitor.objectName():
@@ -188,7 +191,8 @@ class Ui_apdMonitor(object):
         self._today = date.today()
         self._traceNum = 0
         self._rm = visa.ResourceManager()
-        self._func_gen = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+        self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._apd = None
@@ -203,7 +207,7 @@ class Ui_apdMonitor(object):
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
         self.checkSweepFrequency.stateChanged.connect(self.func_generation)
-
+        self.sweepFrequency.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
     def retranslateUi(self, apdMonitor):
         apdMonitor.setWindowTitle(QCoreApplication.translate("apdMonitor", u"MainWindow", None))
@@ -306,8 +310,6 @@ class Ui_apdMonitor(object):
     def graph_values(self):
         self.apd_graph.clear()
         self._values = self._apd.read_values()
-        #self._timed_values[self.counter] = mean(self._values)
-        #self.counter += 1;
         self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
@@ -334,10 +336,10 @@ class Ui_apdMonitor(object):
             self.start_acq()
     def func_generation(self):
         if self.checkSweepFrequency.isChecked():
-            self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50')
-            self._func_gen.write(':SOUR1;:OUTP ON;')
+            self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.sweepFrequency.value()}","VOLT 1",'FUNC:RAMP:SYMM 50'])
+            self._func_gen.write_many(['OUTP ON'])
         else:
-            self._func_gen.write(':SOUR1;:OUTP OFF;')
+            self._func_gen.write_many(['OUTP OFF'])
 
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
