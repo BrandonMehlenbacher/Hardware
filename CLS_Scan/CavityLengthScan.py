@@ -18,6 +18,8 @@ from PySide2.QtWidgets import *
 
 from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
+from cavityCalculations import fittingCavityLength
+
 import numpy as np
 from statistics import mean
 import pyqtgraph as pg
@@ -72,7 +74,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.labelDaqList.setGeometry(QRect(530, 450, 131, 31))
         self.labelDaqList.setFont(font)
         self.daqList = QListWidget(self.centralwidget)
-        QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
@@ -271,8 +272,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         ___qlistwidgetitem6.setText(QCoreApplication.translate("CavityLengthScan", u"Dev1/ai6", None));
         ___qlistwidgetitem7 = self.daqList.item(7)
         ___qlistwidgetitem7.setText(QCoreApplication.translate("CavityLengthScan", u"Dev1/ai7", None));
-        ___qlistwidgetitem8 = self.daqList.item(8)
-        ___qlistwidgetitem8.setText(QCoreApplication.translate("CavityLengthScan", u"Dev1/ai8", None));
         self.daqList.setSortingEnabled(__sortingEnabled)
 
         self.labelMinVoltage.setText(QCoreApplication.translate("CavityLengthScan", u"Minimum Voltage", None))
@@ -322,7 +321,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
         self._active = True
-
     #function for stopping the acquisition
     def stop_acq(self):
         self._apd.stop_acquisition()
@@ -332,14 +330,13 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
-        
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value())
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
             self._apd.start_acquisition()
             time = (1/self.frequency.value())*1000
             self._timer.start(time)
@@ -348,7 +345,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
     def graph_values(self):
         self.apd_graph.clear()
         self._values = self._apd.read_values()
-        
+        self._apd.stop_acquisition()
+        self._apd.start_acquisition()
         self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
@@ -370,7 +368,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         if not os.path.isdir(directory):
             os.makedirs(directory)
         np.savetxt(self._filename,saveValues)
-        np.savetxt(self._filename,self._timed_values)
         if stopped:
             self.start_acq()
     def func_generation(self):
