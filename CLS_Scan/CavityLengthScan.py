@@ -18,8 +18,10 @@ from PySide2.QtWidgets import *
 
 from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
-#from cavityCalculations import fittingCavityLength
+from cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
+from signalOutput import signalOutput, workerOutput
+
 
 import numpy as np
 from statistics import mean
@@ -173,7 +175,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.labelAPDControls.setFont(font)
         self.labelFuncGenControls = QLabel(self.centralwidget)
         self.labelFuncGenControls.setObjectName(u"labelFuncGenControls")
-        self.labelFuncGenControls.setGeometry(QRect(740, 270, 141, 41))
+        self.labelFuncGenControls.setGeometry(QRect(740, 250, 141, 41))
         self.labelFuncGenControls.setFont(font)
         self.labelAmplitude = QLabel(self.centralwidget)
         self.labelAmplitude.setObjectName(u"labelAmplitude")
@@ -211,6 +213,11 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.funcGenSwitch.setObjectName(u"funcGenSwitch")
         self.funcGenSwitch.setGeometry(QRect(700, 310, 171, 21))
         self.funcGenSwitch.setFont(font)
+        self.funcGenSwitch.setFont(font)
+        self.scanSwitch = QCheckBox(self.centralwidget)
+        self.scanSwitch.setObjectName(u"scanSwitch")
+        self.scanSwitch.setGeometry(QRect(700, 280, 171, 31))
+        self.scanSwitch.setFont(font) 
         CavityLengthScan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(CavityLengthScan)
         self.menubar.setObjectName(u"menubar")
@@ -225,11 +232,12 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.daqList.setCurrentRow(-1)
 
         #keep all of the set values here
+        self.scanSwitch.setChecked(True)
         self.amplitude.setValue(self.values.getEntry("amplitude"))
         self.funcGenFrequency.setValue(self.values.getEntry("funcGenFrequency"))
         self.phase.setValue(self.values.getEntry("phase"))
         self.offset.setValue(self.values.getEntry("offset"))
-        self.frequency.setValue(self.values.getEntry("offset"))
+        self.frequency.setValue(self.values.getEntry("frequency"))
         self.maxVoltage.setValue(self.values.getEntry("maxVoltage"))
         self.minVoltage.setValue(self.values.getEntry("minVoltage"))
         
@@ -250,6 +258,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._active = False
         self._values = None
 
+        
+        
         self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
         self.stop.clicked.connect(self.stop_acq)
@@ -257,6 +267,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
         self.funcGenSwitch.stateChanged.connect(self.func_generation)
+        self.scanSwitch.stateChanged.connect(self.func_generation)
         self.funcGenFrequency.valueChanged.connect(self.func_generation)
         self.amplitude.valueChanged.connect(self.func_generation)
         self.phase.valueChanged.connect(self.func_generation)
@@ -324,10 +335,14 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.labelOffset.setText(QCoreApplication.translate("CavityLengthScan", u"Offset", None))
         self.labelPhase.setText(QCoreApplication.translate("CavityLengthScan", u"Phase", None))
         self.funcGenSwitch.setText(QCoreApplication.translate("CavityLengthScan", u"Function Gen Switch", None))
-
+        self.scanSwitch.setText(QCoreApplication.translate("CavityLengthScan", u"Scan/No Scan", None))
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
+        #in case we want to use the DAQ as the output
+        #self.output = signalOutput("Dev1/ao0", 1000000,100)
+        #self.worker =  workerOutput(self.output)
+        #self.worker.start()
         self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value())
         self._apd.start_acquisition()
         self._timer = QTimer()
@@ -339,6 +354,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._active = True
     #function for stopping the acquisition
     def stop_acq(self):
+        #self.worker.terminateLoop()
+        #self.worker.quit()
         self._apd.stop_acquisition()
         self._apd.close_daq()
         self._apd = None
@@ -390,7 +407,10 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
     def func_generation(self):
         self.saveNewValues()
         if self.funcGenSwitch.isChecked():
-            self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
+            if self.scanSwitch.isChecked():
+                self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
+            else:
+                self._func_gen.write_many(['FUNC:SHAP DC','VOLT:UNIT VPP',f"VOLT:OFFS {self.offset.value()}"])
             self._func_gen.write_many(['OUTP ON'])
         else:
             self._func_gen.write_many(['OUTP OFF'])
