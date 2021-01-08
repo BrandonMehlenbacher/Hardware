@@ -18,7 +18,8 @@ from PySide2.QtWidgets import *
 
 from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
-from cavityCalculations import fittingCavityLength
+#from cavityCalculations import fittingCavityLength
+from FFPC_Programs.initialValues import initializeValues
 
 import numpy as np
 from statistics import mean
@@ -39,6 +40,9 @@ class Ui_CavityLengthScan(object):
     To stop data acquisition, simply hit the stop button and it will terminate
 self.apd_graph = pg.PlotWidget(self.centralwidget)
     """
+    def __init__(self):
+        names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
+        self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
         if not CavityLengthScan.objectName():
             CavityLengthScan.setObjectName(u"CavityLengthScan")
@@ -162,7 +166,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.amplitude.setObjectName(u"amplitude")
         self.amplitude.setGeometry(QRect(740, 370, 131, 21))
         self.amplitude.setFont(font)
-        self.amplitude.setValue(0.2000)
+        #self.amplitude.setValue(0.2000)
         self.labelAPDControls = QLabel(self.centralwidget)
         self.labelAPDControls.setObjectName(u"labelAPDControls")
         self.labelAPDControls.setGeometry(QRect(530, 310, 101, 31))
@@ -179,7 +183,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.funcGenFrequency.setObjectName(u"funcGenFrequency")
         self.funcGenFrequency.setGeometry(QRect(740, 420, 131, 21))
         self.funcGenFrequency.setFont(font)
-        self.funcGenFrequency.setValue(10.0)
+        #self.funcGenFrequency.setValue(10.0)
         self.labelFuncGenFrequency = QLabel(self.centralwidget)
         self.labelFuncGenFrequency.setObjectName(u"labelFuncGenFrequency")
         self.labelFuncGenFrequency.setGeometry(QRect(740, 390, 101, 31))
@@ -220,7 +224,15 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
 
         self.daqList.setCurrentRow(-1)
 
-
+        #keep all of the set values here
+        self.amplitude.setValue(self.values.getEntry("amplitude"))
+        self.funcGenFrequency.setValue(self.values.getEntry("funcGenFrequency"))
+        self.phase.setValue(self.values.getEntry("phase"))
+        self.offset.setValue(self.values.getEntry("offset"))
+        self.frequency.setValue(self.values.getEntry("offset"))
+        self.maxVoltage.setValue(self.values.getEntry("maxVoltage"))
+        self.minVoltage.setValue(self.values.getEntry("minVoltage"))
+        
         QMetaObject.connectSlotsByName(CavityLengthScan)
         #all of the rest of the code that I have added is below
         #If any changes are made to the ui, copy everything down
@@ -246,7 +258,11 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.minVoltage.valueChanged.connect(self.change_value)
         self.funcGenSwitch.stateChanged.connect(self.func_generation)
         self.funcGenFrequency.valueChanged.connect(self.func_generation)
+        self.amplitude.valueChanged.connect(self.func_generation)
+        self.phase.valueChanged.connect(self.func_generation)
+        self.offset.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
+        
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
         self.start.setText(QCoreApplication.translate("CavityLengthScan", u"Start", None))
@@ -332,6 +348,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._active = False
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
+        self.saveNewValues()
         if self._active:
             self._apd.stop_acquisition()
             self._apd.close_daq()
@@ -371,11 +388,22 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         if stopped:
             self.start_acq()
     def func_generation(self):
+        self.saveNewValues()
         if self.funcGenSwitch.isChecked():
             self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
             self._func_gen.write_many(['OUTP ON'])
         else:
             self._func_gen.write_many(['OUTP OFF'])
+    def saveNewValues(self):
+        listValues = [self.frequency.value(),
+                      self.minVoltage.value(),
+                      self.maxVoltage.value(),
+                      self.amplitude.value(),
+                      self.funcGenFrequency.value(),
+                      self.phase.value(),
+                      self.offset.value(),
+                      ]
+        self.values.saveValues(listValues)
 
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
