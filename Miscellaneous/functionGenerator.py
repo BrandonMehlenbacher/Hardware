@@ -24,7 +24,7 @@ class FunctionGenerator:
         command: a string containing the command you want to write to the instrument
         """
         if self.funcGenUsed.lower() == "rigol":
-            self.instrument.write(f":{self.source};:{command};")
+            self.instrument.write(f":{self.source}:{command}")
     def write_many(self,commands):
         """
         Input:
