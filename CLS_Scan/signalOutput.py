@@ -25,7 +25,7 @@ class signalOutput:
         self.amplitude =amplitude
         self.outputTask = nidaqmx.Task()
         self.outputTask.ao_channels.add_ao_voltage_chan(channel)
-        self.outputTask.timing.cfg_samp_clk_timing(rate=self.rate,samps_per_chan = 1000000, sample_mode= nidaqmx.constants.AcquisitionType.FINITE)
+        self.outputTask.timing.cfg_samp_clk_timing(rate=self.rate,samps_per_chan = 1000000, sample_mode= nidaqmx.constants.AcquisitionType.CONTINUOUS)
         
         self.signalFunction = self.signal_type(signalType)
         timePoints = np.linspace(0,1/frequency,int(self.rate/(self.frequency)))
@@ -80,8 +80,7 @@ class workerOutput(QThread):
     def run(self):
         self._daq.start_acq()
         while self.terminate:
-            self._daq.stop_acq()
-            self._daq.start_acq()
+            pass
         self._daq.stop_acq()
     def terminateLoop(self):
         self.terminate = False
