@@ -4,14 +4,14 @@ from scipy.optimize import curve_fit
 from lmfit.models import LorentzianModel
 from scipy.signal import find_peaks
 
-def whiteLightScan(data=None,filename = None,toPlot = False)
+def whiteLightScan(data=None, filename = None,toPlot = False):
     if data == None and filename == None:
-            print("we do need some data")
-            return
-        elif data != none:
-            wls_data = data
-        else:
-            wls_data = pd.read_csv(filename,sep=' ', header=None)
+        print("we do need some data")
+        return
+    elif data != None:
+        wls_data = data
+    else:
+        wls_data = pd.read_csv(filename,sep=' ', header=None)
     wlsData[2] = (wlsData[2]-min(wlsData[2]))
     wlsData[2] = wlsData[2]/max(wlsData[2])
     if toPlot:
