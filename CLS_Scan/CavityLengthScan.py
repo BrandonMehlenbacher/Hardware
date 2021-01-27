@@ -250,7 +250,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._traceNum = 0
         self._rm = visa.ResourceManager()
         self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        self._func_gen = FunctionGenerator(self._resource,"SOUR2")
+        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._apd = None
