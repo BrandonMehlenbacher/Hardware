@@ -10,7 +10,7 @@ class GeneralSCPI:
     source: which source on the function generator are you trying to use, a string containing SOUR1
 
     """
-    def __init__(self,instrument,source):
+    def __init__(self,instrument,source="SOUR1"):
         self.instrument  = instrument
         self.source = source
     def write_single(self,command):
@@ -26,7 +26,14 @@ class GeneralSCPI:
         """
         for command in commands:
             self.write_single(command)
-
+    def get_ID(self):
+        self.write_single(f":*IDN?")
+    def operation_finished(self)"
+        self.write_single(f":*OPC")
+    def default_state(self):
+        self.write_single(f":*RST"):
+    def wait_finished(self):
+        self.write_single(f":*WAI")
 class FunctionGenerator(GeneralSCPI):
     """
     This is going to be used for controlling different components of a function generator attempting to make
@@ -41,7 +48,7 @@ class FunctionGenerator(GeneralSCPI):
     source: which source on the function generator are you trying to use, a string containing SOUR1
 
     """
-    def __init__(self, instrument, source):
+    def __init__(self, instrument, source="SOUR1"):
         super().__init__(instrument,source)
     def change_shape(self,shape):
         """
@@ -54,18 +61,76 @@ class FunctionGenerator(GeneralSCPI):
         Input:
         Voltage: the desired voltage as governed the declared units
         """
-        self.write_single(f"VOLT {voltage}")
+        assert isinstance(offset, (int,float))
+        if isinstance(self,DCWaveform):
+            print("You should be using change_offset instead")
+        else:
+            self.write_single(f"VOLT {voltage}")
+    def change_frequency(self,frequency):
+        """
+        Input:
+        Frequency: the desired voltage as governed the declared units Frequency
+        """
+        assert isinstance(frequency, (int,float))
+        self.write_single(f"FREQ {frequency}")
+    def change_offset(self,offset):
+        """
+        Input:
+        Offset: the desired voltage as governed the declared units offset
+        """
+        assert isinstance(offset, (int,float))
+        self.write_single(f"VOLT:OFF {offset}") 
 
 class SineWaveform(FunctionGenerator):
-    pass
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("SINE")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
+        
 class SquareWaveform(FunctionGenerator):
-    pass
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("SQUA")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
+       
+class RampWaveform(FunctionGenerator):
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("RAMP")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
+    def change_symmetry(self,symmetry):
+        assert frequency > 0 and frequency <= 100
+        self.write_single(f"FUNC:RAMP:SYMM {symmetry}")
+       
 class PulseWaveform(FunctionGenerator):
-    pass
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("PULS")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
+       
 class DCWaveform(FunctionGenerator):
-    pass
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("DC")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
+       
 class NoiseWaveform(FunctionGenerator):
-    pass
+    def __init__(self,instrument,source="SOUR1"):
+        super().__init__(self,instrument,source)
+        self.change_shape("NOIS")
+    def change_frequency(self,frequency):
+       assert frequency >= 0.1 and frequency <= 25*10**6
+       super().change_frequency(frequency)
 
 if __name__ == "__main__":
     rm = visa.ResourceManager()
