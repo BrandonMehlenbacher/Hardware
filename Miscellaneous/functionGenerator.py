@@ -28,10 +28,10 @@ class GeneralSCPI:
             self.write_single(command)
     def get_ID(self):
         self.write_single(f":*IDN?")
-    def operation_finished(self)"
+    def operation_finished(self):
         self.write_single(f":*OPC")
     def default_state(self):
-        self.write_single(f":*RST"):
+        self.write_single(f":*RST")
     def wait_finished(self):
         self.write_single(f":*WAI")
 class FunctionGenerator(GeneralSCPI):
