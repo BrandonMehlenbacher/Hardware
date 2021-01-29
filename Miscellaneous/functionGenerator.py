@@ -26,14 +26,17 @@ class GeneralSCPI:
         """
         for command in commands:
             self.write_single(command)
+    def query_single(self,command):
+        self.instrument.query(f":{self.source}:{command}")
     def get_ID(self):
-        self.write_single(f":*IDN?")
+        self.query_single(f":*IDN?")
     def operation_finished(self):
-        self.write_single(f":*OPC")
+        self.query_single(f":*OPC")
     def default_state(self):
-        self.write_single(f":*RST")
+        self.query_single(f":*RST")
     def wait_finished(self):
-        self.write_single(f":*WAI")
+        self.query_single(f":*WAI")
+
 class FunctionGenerator(GeneralSCPI):
     """
     This is going to be used for controlling different components of a function generator attempting to make
