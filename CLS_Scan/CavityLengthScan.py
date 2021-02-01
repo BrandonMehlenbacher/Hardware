@@ -260,7 +260,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
 
         
         
-        self.frequency.valueChanged.connect(self.change_value)
+        #self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
         self.stop.clicked.connect(self.stop_acq)
         self.daqList.currentItemChanged.connect(self.change_value)
@@ -345,7 +345,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
-        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
+        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
         self._apd.start_acquisition()
         self._timer.start(time)
         self._timer.timeout.connect(self.graph_values)
@@ -371,7 +371,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
             self._apd.start_acquisition()
             time = (1/self.frequency.value())*1000
             self._timer.start(time)
@@ -391,7 +391,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             stopped = True
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
-            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"CLS_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
