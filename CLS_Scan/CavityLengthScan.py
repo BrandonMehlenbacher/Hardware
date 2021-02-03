@@ -168,7 +168,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.amplitude.setObjectName(u"amplitude")
         self.amplitude.setGeometry(QRect(740, 370, 131, 21))
         self.amplitude.setFont(font)
-        #self.amplitude.setValue(0.2000)
         self.labelAPDControls = QLabel(self.centralwidget)
         self.labelAPDControls.setObjectName(u"labelAPDControls")
         self.labelAPDControls.setGeometry(QRect(530, 310, 101, 31))
@@ -185,7 +184,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.funcGenFrequency.setObjectName(u"funcGenFrequency")
         self.funcGenFrequency.setGeometry(QRect(740, 420, 131, 21))
         self.funcGenFrequency.setFont(font)
-        #self.funcGenFrequency.setValue(10.0)
         self.labelFuncGenFrequency = QLabel(self.centralwidget)
         self.labelFuncGenFrequency.setObjectName(u"labelFuncGenFrequency")
         self.labelFuncGenFrequency.setGeometry(QRect(740, 390, 101, 31))
@@ -271,7 +269,10 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._timer = None
         self._active = False
         self._values = None
-
+        #for timed channel
+        self.timedList = []
+        self.timedValues = []
+        self.currentTime = 0
         
         
         #self.frequency.valueChanged.connect(self.change_value)
@@ -372,7 +373,6 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
     def stop_acq(self):
         #self.worker.terminateLoop()
         #self.worker.quit()
-        
         self._apd.stop_acquisition()
         self._apd.close_daq()
         self._apd = None
@@ -394,14 +394,20 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             self._timer.timeout.connect(self.graph_values)
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
-        if self.timedOrContinuous.isChecked:
-            pass
+        self.apd_graph.clear()
+        self._values = self._apd.read_values()
+        self._apd.stop_acquisition()
+        self._apd.start_acquisition()
+        if self.timedOrContinuous.isChecked():
+            self.currentTime += 1/self.frequency.value()
+            self.timedList.append(self.currentTime)
+            self.timedValues.append(sum(self._values)/len(self._values))
+            self.apd_graph.plot(self.timedList,self.timedValues)
         else:
-            self.apd_graph.clear()
-            self._values = self._apd.read_values()
-            self._apd.stop_acquisition()
-            self._apd.start_acquisition()
             self.apd_graph.plot(self._values)
+            self.timedList = []
+            self.timedValues = []
+            self.currentTime = 0
     def save_values(self):
         self._traceNum+=1;
         stopped = False
