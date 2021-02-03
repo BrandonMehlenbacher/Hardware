@@ -48,7 +48,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
     def setupUi(self, CavityLengthScan):
         if not CavityLengthScan.objectName():
             CavityLengthScan.setObjectName(u"CavityLengthScan")
-        CavityLengthScan.resize(908, 701)
+        CavityLengthScan.resize(1178, 701)
         self.centralwidget = QWidget(CavityLengthScan)
         self.centralwidget.setObjectName(u"centralwidget")
         self.apd_graph = pg.PlotWidget(self.centralwidget)
@@ -217,7 +217,21 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.scanSwitch = QCheckBox(self.centralwidget)
         self.scanSwitch.setObjectName(u"scanSwitch")
         self.scanSwitch.setGeometry(QRect(700, 280, 171, 31))
-        self.scanSwitch.setFont(font) 
+        self.scanSwitch.setFont(font)
+        self.timedOrContinuous = QCheckBox(self.centralwidget)
+        self.timedOrContinuous.setObjectName(u"timedOrContinuous")
+        self.timedOrContinuous.setGeometry(QRect(900, 350, 211, 61))
+        self.timedOrContinuous.setFont(font)
+        self.labelLengthOfMeasurement = QLabel(self.centralwidget)
+        self.labelLengthOfMeasurement.setObjectName(u"labelLengthOfMeasurement")
+        self.labelLengthOfMeasurement.setGeometry(QRect(900, 410, 241, 21))
+        self.labelLengthOfMeasurement.setFont(font)
+        self.lengthOfMeasurement = QSpinBox(self.centralwidget)
+        self.lengthOfMeasurement.setObjectName(u"lengthOfMeasurement")
+        self.lengthOfMeasurement.setGeometry(QRect(900, 440, 101, 22))
+        self.lengthOfMeasurement.setFont(font)
+        self.lengthOfMeasurement.setMaximum(100000)
+        self.lengthOfMeasurement.setValue(100)
         CavityLengthScan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(CavityLengthScan)
         self.menubar.setObjectName(u"menubar")
@@ -303,12 +317,12 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
 
         self.labelMinVoltage.setText(QCoreApplication.translate("CavityLengthScan", u"Minimum Voltage", None))
         self.labelMaxVoltage.setText(QCoreApplication.translate("CavityLengthScan", u"Maximum Voltage", None))
-        self.cavityName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Cavity", None))
+        self.cavityName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"P15F2_planarCavity", None))
         self.labelFolderName.setText(QCoreApplication.translate("CavityLengthScan", u"Folder Name?", None))
         self.labelComments.setText(QCoreApplication.translate("CavityLengthScan", u"Comments?", None))
         self.labelCavityName.setText(QCoreApplication.translate("CavityLengthScan", u"Cavity Name?", None))
         self.labelWhoAreYou.setText(QCoreApplication.translate("CavityLengthScan", u"Who Are you?", None))
-        self.comments.setPlainText("")
+        self.comments.setPlainText(QCoreApplication.translate("CavityLengthScan", u"CLS", None))
 
         __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
         self.whoAreYou.setSortingEnabled(False)
@@ -321,12 +335,12 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
         ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci", None));
         ___qlistwidgetitem13 = self.whoAreYou.item(4)
-        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Levi", None));
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia", None));
         self.whoAreYou.setSortingEnabled(__sortingEnabled1)
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("CavityLengthScan", u"File Location Path", None))
         self.localOrDatabackup.setText(QCoreApplication.translate("CavityLengthScan", u"Local (T) / Databackup (F)", None))
-        self.folderName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Cavity", None))
+        self.folderName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Raman", None))
         self.save.setText(QCoreApplication.translate("CavityLengthScan", u"Save", None))
         self.labelAPDControls.setText(QCoreApplication.translate("CavityLengthScan", u"APD Controls", None))
         self.labelFuncGenControls.setText(QCoreApplication.translate("CavityLengthScan", u"Func Gen Controls", None))
@@ -336,6 +350,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.labelPhase.setText(QCoreApplication.translate("CavityLengthScan", u"Phase", None))
         self.funcGenSwitch.setText(QCoreApplication.translate("CavityLengthScan", u"Function Gen Switch", None))
         self.scanSwitch.setText(QCoreApplication.translate("CavityLengthScan", u"Scan/No Scan", None))
+        self.timedOrContinuous.setText(QCoreApplication.translate("CavityLengthScan", u"Timed(T)/Continuous(F)", None))
+        self.labelLengthOfMeasurement.setText(QCoreApplication.translate("CavityLengthScan", u"Length of Measurement time (s)", None))
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
@@ -378,11 +394,14 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             self._timer.timeout.connect(self.graph_values)
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
-        self.apd_graph.clear()
-        self._values = self._apd.read_values()
-        self._apd.stop_acquisition()
-        self._apd.start_acquisition()
-        self.apd_graph.plot(self._values)
+        if self.timedOrContinuous.isChecked:
+            pass
+        else:
+            self.apd_graph.clear()
+            self._values = self._apd.read_values()
+            self._apd.stop_acquisition()
+            self._apd.start_acquisition()
+            self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
         stopped = False
@@ -392,12 +411,12 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         if self.localOrDatabackup.isChecked():
             current_directory = os.getcwd()
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()
-            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"CLS_{self._traceNum}.csv"
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
             current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
-            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"CLS_{self._traceNum}.csv"
+            self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         saveValues = np.array(self._values)
         if not os.path.isdir(directory):
