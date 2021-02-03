@@ -252,7 +252,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.frequency.setValue(self.values.getEntry("frequency"))
         self.maxVoltage.setValue(self.values.getEntry("maxVoltage"))
         self.minVoltage.setValue(self.values.getEntry("minVoltage"))
-        
+        self.resolution = 1000000
         QMetaObject.connectSlotsByName(CavityLengthScan)
         #all of the rest of the code that I have added is below
         #If any changes are made to the ui, copy everything down
@@ -362,7 +362,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
-        self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
+        self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
         self._apd.start_acquisition()
         self._timer.start(time)
         self._timer.timeout.connect(self.graph_values)
@@ -387,7 +387,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
             self._apd.start_acquisition()
             time = (1/self.frequency.value())*1000
             self._timer.start(time)
