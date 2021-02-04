@@ -405,6 +405,11 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             self.timedList.append(self.currentTime)
             self.timedValues.append(sum(self._values)/len(self._values))
             self.apd_graph.plot(self.timedList,self.timedValues)
+            if self.currentTime >= self.lengthOfMeasurement.value():
+                self.save_values()
+                self.timedOrContinuous.setChecked(False)
+                self.timedList = []
+                self.timedValues = []
         else:
             self.apd_graph.plot(self._values)
             self.timedList = []
