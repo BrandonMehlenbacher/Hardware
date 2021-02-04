@@ -192,7 +192,9 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.offset.setObjectName(u"offset")
         self.offset.setGeometry(QRect(740, 480, 131, 21))
         self.offset.setFont(font)
-        self.offset.setValue(0.2000)
+        self.offset.setDecimals(4)
+        self.offset.setSingleStep(0.001000000)
+        #self.offset.setValue(0.2000)
         self.labelOffset = QLabel(self.centralwidget)
         self.labelOffset.setObjectName(u"labelOffset")
         self.labelOffset.setGeometry(QRect(740, 450, 101, 31))
@@ -424,10 +426,13 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
-        saveValues = np.array(self._values)
+        if self.timedOrContinuous.isChecked():
+            saveValues = np.transpose(np.array([self.timedList,self.timedValues],ndmin=2))
+        else:
+            saveValues = np.array(self._values)
         if not os.path.isdir(directory):
             os.makedirs(directory)
-        np.savetxt(self._filename,saveValues)
+        np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
     def func_generation(self):
