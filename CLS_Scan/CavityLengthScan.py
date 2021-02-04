@@ -21,13 +21,13 @@ from Miscellaneous.functionGenerator import FunctionGenerator
 from cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
 from signalOutput import signalOutput, workerOutput
-
+from FFPC_Programs.QFactor.Q_Calc import QFactor
 
 import numpy as np
 from statistics import mean
 import pyqtgraph as pg
 import pyvisa as visa
-
+import pandas as pd
 
 class Ui_CavityLengthScan(object):
     """
@@ -232,6 +232,21 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.lengthOfMeasurement.setFont(font)
         self.lengthOfMeasurement.setMaximum(100000)
         self.lengthOfMeasurement.setValue(100)
+        self.QFactorOrFinesse = QCheckBox(self.centralwidget)
+        self.QFactorOrFinesse.setObjectName(u"QFactorOrFinesse")
+        self.QFactorOrFinesse.setGeometry(QRect(900, 480, 241, 51))
+        self.QFactorOrFinesse.setFont(font)
+        self.valueFinesse = QLCDNumber(self.centralwidget)
+        self.valueFinesse.setObjectName(u"valueFinesse")
+        self.valueFinesse.setGeometry(QRect(900, 590, 201, 31))
+        self.valueFinesse.setFont(font)
+        self.valueFinesse.setDigitCount(8)
+        self.valueFinesse.setSmallDecimalPoint(False)
+        self.valueFinesse.setProperty("value", 0.000000000000000)
+        self.calculateFinesse = QPushButton(self.centralwidget)
+        self.calculateFinesse.setObjectName(u"calculateFinesse")
+        self.calculateFinesse.setGeometry(QRect(900, 530, 171, 41))
+        self.calculateFinesse.setFont(font)
         CavityLengthScan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(CavityLengthScan)
         self.menubar.setObjectName(u"menubar")
@@ -267,8 +282,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
-        self._apd = None
         self._timer = None
+        self._apd = None
         self._active = False
         self._values = None
         #for timed channel
@@ -290,6 +305,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.phase.valueChanged.connect(self.func_generation)
         self.offset.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
+        self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
         
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
@@ -355,6 +371,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.scanSwitch.setText(QCoreApplication.translate("CavityLengthScan", u"Scan/No Scan", None))
         self.timedOrContinuous.setText(QCoreApplication.translate("CavityLengthScan", u"Timed(T)/Continuous(F)", None))
         self.labelLengthOfMeasurement.setText(QCoreApplication.translate("CavityLengthScan", u"Length of Measurement time (s)", None))
+        self.QFactorOrFinesse.setText(QCoreApplication.translate("CavityLengthScan", u"Quality Factor (T)/Finesse (F)", None))
+        self.calculateFinesse.setText(QCoreApplication.translate("CavityLengthScan", u"Calculate Q/Finesse", None))
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
@@ -394,6 +412,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             time = (1/self.frequency.value())*1000
             self._timer.start(time)
             self._timer.timeout.connect(self.graph_values)
+            
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
         self.apd_graph.clear()
@@ -460,7 +479,31 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
                       self.offset.value(),
                       ]
         self.values.saveValues(listValues)
-
+    def qFactor(self):
+        if self._active:
+            correction = int(1000000/self.funcGenFrequency.value())
+            originalXValues = (120.5/correction)*np.array(range(correction))
+            #self.apd_graph.clear()
+            #self._values = self._apd.read_values()
+            x_values = originalXValues[0:int(len(originalXValues)/2)]
+            y_values = self._values[0:int(len(originalXValues)/2)]
+            dataframe = pd.DataFrame({'x_values': x_values, 'y_values': y_values})
+            self.apd_graph.plot(x_values, y_values)
+            QCalc = QFactor(x_values, y_values)
+            QCalc.fitLorentz()
+            sigma = QCalc.getSigma()
+            self.valueFinesse.display(780000/sigma)  # roughly the wavelength in picometers
+            #newYValues = QCalc.getNewYVal()
+           #self.apd_graph.plot(x_values, newYValues)
+            #dataframe.to_csv(self._filename)
+            #self.change_filename()
+            #self._traceNum+=1;
+            
+    def qFactor_or_finesse(self):
+        if self.QFactorOrFinesse.isChecked():
+            self.qFactor()
+        else:
+            pass
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
