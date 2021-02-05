@@ -3,15 +3,16 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from lmfit.models import LorentzianModel
 from scipy.signal import find_peaks
+import numpy as np
 
 def whiteLightScan(data=None, filename = None,toPlot = False):
     if data == None and filename == None:
         print("we do need some data")
         return
     elif data != None:
-        wls_data = data
+        wlsData = data
     else:
-        wls_data = pd.read_csv(filename,sep=' ', header=None)
+        wlsData = pd.read_csv(filename,sep=' ', header=None)
     wlsData[2] = (wlsData[2]-min(wlsData[2]))
     wlsData[2] = wlsData[2]/max(wlsData[2])
     if toPlot:
@@ -30,10 +31,10 @@ def fittingCavityLength(data=None,filename = None):
     if data == None and filename == None:
         print("we do need some data")
         return
-    elif data != none:
+    elif data != None:
         cls_data = data
     else:
-        cls_data = pd.read_csv(CLS_str,header= None)
+        cls_data = pd.read_csv(filename,header= None)
     resonance = cls_data[2][:5000] # the intensity data
     length = np.arange(len(resonance)) # the length in arbitrary units
     

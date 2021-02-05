@@ -1,5 +1,6 @@
 import csv
 import pathlib
+import sys
 
 class initializeValues(object):
     def __init__(self,names,filename='initialValues.csv'):

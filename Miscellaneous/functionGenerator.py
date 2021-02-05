@@ -64,7 +64,7 @@ class FunctionGenerator(GeneralSCPI):
         Input:
         Voltage: the desired voltage as governed the declared units
         """
-        assert isinstance(offset, (int,float))
+        assert isinstance(voltage, (int,float))
         if isinstance(self,DCWaveform):
             print("You should be using change_offset instead")
         else:
@@ -108,7 +108,7 @@ class RampWaveform(FunctionGenerator):
        assert frequency >= 0.1 and frequency <= 25*10**6
        super().change_frequency(frequency)
     def change_symmetry(self,symmetry):
-        assert frequency > 0 and frequency <= 100
+        assert symmetry > 0 and symmetry <= 100
         self.write_single(f"FUNC:RAMP:SYMM {symmetry}")
        
 class PulseWaveform(FunctionGenerator):

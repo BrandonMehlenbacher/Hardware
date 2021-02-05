@@ -14,7 +14,6 @@ setup(
     "pyqtgraph",
     "nidaqmx",],
  description= "Tools for controlling a equipment in Goldsmith lab",
- long_description=read("README.md"),
  authors="Brandon Mehlenbacher",
  license="MIT",
  classifiers=[

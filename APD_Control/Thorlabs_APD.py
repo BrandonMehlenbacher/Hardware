@@ -29,7 +29,7 @@ class APD_Reader(object):
             self._apd.timing.cfg_samp_clk_timing(rate = self._rate,samps_per_chan = self._size_of_channel, sample_mode = nidaqmx.constants.AcquisitionType.FINITE)
     @property
     def size_of_channel(self):
-        return size_of_channel
+        return self._size_of_channel
     @size_of_channel.setter
     def size_of_channel(self,size):
         self._size_of_channel = size

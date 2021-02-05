@@ -278,7 +278,7 @@ class Ui_apdMonitor(object):
             self._func_gen.write(f':SOUR1:;FUNC:SHAP RAMP;:VOLT:UNIT VPP;:FREQ {self.sweepFrequency.value()};:VOLT 1;FUNC:RAMP:SYMM 50;')
             self._func_gen.write(':SOUR1;:OUTP ON;')
         pool = QThreadPool.globalInstance()
-        self.worker = timedChannel(self._apd,10) #100s currently
+        self.worker = timedChannel(self._apd,1000) #100s currently
         self.worker.signals.progress.connect(self.graph_values)
         pool.start(self.worker)
         
