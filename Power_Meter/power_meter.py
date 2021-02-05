@@ -4,7 +4,7 @@ import win32com.client
 
 
 class PowerMeter(object):
-    def __init__(self,USB_Port,intitial_wavelength=780):
+    def __init__(self,USB_Port,initial_wavelength=780):
         instr = USBTMC(device=USB_Port) 
         self._power_meter = ThorlabsPM100(inst=instr)
         self._current_wavelength = self.wavelength(initial_wavelength)

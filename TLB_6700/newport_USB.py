@@ -24,7 +24,7 @@ class newportUSBDevices(self):
         self._devices.CloseDevices()
     def get_all_description(self):
         count = 0
-        while (count< len(self._devices_info))
+        while (count< len(self._devices_info)):
             yield self._devices_info[count].get_Description()
             count += 1
     def get_description(self,device_number):

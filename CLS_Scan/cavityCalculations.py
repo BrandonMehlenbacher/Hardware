@@ -16,7 +16,7 @@ def whiteLightScan(data=None, filename = None,toPlot = False):
     wlsData[2] = (wlsData[2]-min(wlsData[2]))
     wlsData[2] = wlsData[2]/max(wlsData[2])
     if toPlot:
-        plt.plot(wls_data[1][0:1101],wls_data[2][0:1101],color='k')
+        plt.plot(wlsData[1][0:1101],wlsData[2][0:1101],color='k')
         plt.xlabel('Wavelength (nm)',fontsize = 16)
         plt.ylabel('Normalized Transmission', fontsize = 16)
         plt.xticks(size = 14)
