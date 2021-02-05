@@ -189,8 +189,6 @@ def set_IDs_Newport(array_list):
 #time.sleep(3)
 #my_device.Write(0,'OUTP:STAT {0}')
 #new_port_devices.CloseDevices()
-<<<<<<< HEAD
-=======
 
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
@@ -201,16 +199,3 @@ if __name__ == '__main__':
     time.sleep(20)
     laser.turnOff()
     time.sleep(10)
-    laser.close_devices()
->>>>>>> 7664eb1272a9ff0fe51629707923467645f54b57
-
-if __name__ == '__main__':
-    laser = TLB_6700_controller("SN41044")
-    laser.current = 55
-    #time.sleep(1)
-    #print(laser.current)
-    laser.turnOn()
-    time.sleep(20)
-    laser.turnOff()
-    time.sleep(10)
-    laser.close_devices()
