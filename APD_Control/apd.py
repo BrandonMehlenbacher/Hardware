@@ -17,11 +17,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from Thorlabs_APD import APD_Reader
-from Miscellaneous.functionGenerator import FunctionGenerator
 import numpy as np
-from statistics import mean
 import pyqtgraph as pg
-import pyvisa as visa
 
 
 class Ui_apdMonitor(object):
@@ -72,7 +69,6 @@ class Ui_apdMonitor(object):
         self.labelDaqList.setGeometry(QRect(550, 440, 131, 31))
         self.labelDaqList.setFont(font)
         self.daqList = QListWidget(self.centralwidget)
-        QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
         QListWidgetItem(self.daqList)
@@ -164,20 +160,7 @@ class Ui_apdMonitor(object):
         self.statusbar = QStatusBar(apdMonitor)
         self.statusbar.setObjectName(u"statusbar")
         apdMonitor.setStatusBar(self.statusbar)
-        self.checkSweepFrequency = QCheckBox(self.centralwidget)
-        self.checkSweepFrequency.setObjectName(u"checkSweepFrequency")
-        self.checkSweepFrequency.setGeometry(QRect(740, 270, 121, 41))
-        self.checkSweepFrequency.setFont(font)
-        self.label = QLabel(self.centralwidget)
-        self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(740, 310, 131, 31))
-        self.label.setFont(font)
-        self.sweepFrequency = QDoubleSpinBox(self.centralwidget)
-        self.sweepFrequency.setObjectName(u"sweepFrequency")
-        self.sweepFrequency.setGeometry(QRect(740,340,131,31))
-        self.sweepFrequency.setFont(font)
         
-        self.sweepFrequency.setValue(40)
         self.frequency.setValue(10.000000000000000)
         self.maxVoltage.setValue(10)
         self.minVoltage.setValue(0)
@@ -190,9 +173,6 @@ class Ui_apdMonitor(object):
         #and replace the retranslateUI function.
         self._today = date.today()
         self._traceNum = 0
-        self._rm = visa.ResourceManager()
-        self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._apd = None
@@ -206,8 +186,6 @@ class Ui_apdMonitor(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
-        self.checkSweepFrequency.stateChanged.connect(self.func_generation)
-        self.sweepFrequency.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
     def retranslateUi(self, apdMonitor):
         apdMonitor.setWindowTitle(QCoreApplication.translate("apdMonitor", u"MainWindow", None))
@@ -235,7 +213,6 @@ class Ui_apdMonitor(object):
         ___qlistwidgetitem7 = self.daqList.item(7)
         ___qlistwidgetitem7.setText(QCoreApplication.translate("apdMonitor", u"Dev1/ai7", None));
         ___qlistwidgetitem8 = self.daqList.item(8)
-        ___qlistwidgetitem8.setText(QCoreApplication.translate("apdMonitor", u"Dev1/ai8", None));
         self.daqList.setSortingEnabled(__sortingEnabled)
 
         self.labelMinVoltage.setText(QCoreApplication.translate("apdMonitor", u"Minimum Voltage", None))
@@ -258,16 +235,13 @@ class Ui_apdMonitor(object):
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
         ___qlistwidgetitem12.setText(QCoreApplication.translate("apdMonitor", u"Ceci", None));
         ___qlistwidgetitem13 = self.whoAreYou.item(4)
-        ___qlistwidgetitem13.setText(QCoreApplication.translate("apdMonitor", u"Levi", None));
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("apdMonitor", u"Julia", None));
         self.whoAreYou.setSortingEnabled(__sortingEnabled1)
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("apdMonitor", u"File Location Path", None))
         self.localOrDatabackup.setText(QCoreApplication.translate("apdMonitor", u"Local (T) / Databackup (F)", None))
         self.folderName.setPlainText(QCoreApplication.translate("apdMonitor", u"Raman", None))
         self.save.setText(QCoreApplication.translate("apdMonitor", u"Save", None))
-        self.checkSweepFrequency.setText(QCoreApplication.translate("apdMonitor", u"Sweep Laser", None))
-
-        self.label.setText(QCoreApplication.translate("apdMonitor", u"Sweep Frequency", None))
 
     #function for starting the acquisition 
     def start_acq(self):
@@ -276,9 +250,6 @@ class Ui_apdMonitor(object):
         self._apd.start_acquisition()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
-        #self._timed_values= np.zeros(int(3600/time))
-        #self._max_count = self._timed_values.size
-        #self.counter = 0
         self._timer.start(time)
         self._timer.timeout.connect(self.graph_values)
         self.start.setEnabled(False)
@@ -293,8 +264,7 @@ class Ui_apdMonitor(object):
         self._timer.stop()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
-        self._active = False
-        
+        self._active = False   
     #if any of the values have changed, everything gets reset if the DAQ is actually active, if not ignores it
     def change_value(self):
         if self._active:
@@ -331,15 +301,8 @@ class Ui_apdMonitor(object):
         if not os.path.isdir(directory):
             os.makedirs(directory)
         np.savetxt(self._filename,saveValues)
-        np.savetxt(self._filename,self._timed_values)
         if stopped:
             self.start_acq()
-    def func_generation(self):
-        if self.checkSweepFrequency.isChecked():
-            self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.sweepFrequency.value()}","VOLT 1",'FUNC:RAMP:SYMM 50'])
-            self._func_gen.write_many(['OUTP ON'])
-        else:
-            self._func_gen.write_many(['OUTP OFF'])
 
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
