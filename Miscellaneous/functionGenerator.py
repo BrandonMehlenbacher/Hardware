@@ -97,7 +97,7 @@ class SquareWaveform(FunctionGenerator):
         super().__init__(self,instrument,source)
         self.change_shape("SQUA")
     def change_frequency(self,frequency):
-       assert frequency >= 0.1 and frequency <= 25*10**6
+       assert frequency >= 0.1 and frequency <= 15*10**6
        super().change_frequency(frequency)
        
 class RampWaveform(FunctionGenerator):
@@ -105,7 +105,7 @@ class RampWaveform(FunctionGenerator):
         super().__init__(self,instrument,source)
         self.change_shape("RAMP")
     def change_frequency(self,frequency):
-       assert frequency >= 0.1 and frequency <= 25*10**6
+       assert frequency >= 0.1 and frequency <= 0.1*10**6
        super().change_frequency(frequency)
     def change_symmetry(self,symmetry):
         assert symmetry > 0 and symmetry <= 100
@@ -116,24 +116,19 @@ class PulseWaveform(FunctionGenerator):
         super().__init__(self,instrument,source)
         self.change_shape("PULS")
     def change_frequency(self,frequency):
-       assert frequency >= 0.1 and frequency <= 25*10**6
+       assert frequency >= 0.1 and frequency <= 1*10**6
        super().change_frequency(frequency)
        
 class DCWaveform(FunctionGenerator):
     def __init__(self,instrument,source="SOUR1"):
         super().__init__(self,instrument,source)
         self.change_shape("DC")
-    def change_frequency(self,frequency):
-       assert frequency >= 0.1 and frequency <= 25*10**6
-       super().change_frequency(frequency)
        
 class NoiseWaveform(FunctionGenerator):
     def __init__(self,instrument,source="SOUR1"):
         super().__init__(self,instrument,source)
         self.change_shape("NOIS")
-    def change_frequency(self,frequency):
-       assert frequency >= 0.1 and frequency <= 25*10**6
-       super().change_frequency(frequency)
+    
 
 if __name__ == "__main__":
     rm = visa.ResourceManager()
