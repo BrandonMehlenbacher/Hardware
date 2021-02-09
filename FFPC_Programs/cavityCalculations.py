@@ -66,7 +66,7 @@ def fittingCavityLength(data=None,filename = None,toPlot = False):
     Prints the Free spectral range between the top three peaks in the FSR
     """
     clsData = check_data_file(data,filename)
-    resonance = cls_data[2][:5000] # the intensity data
+    resonance =  clsData[2][:5000] # the intensity data
     length = np.arange(len(resonance)) # the length in arbitrary units
 
     # normalize the distribution so that fitting a lorenztian is easier
@@ -135,7 +135,7 @@ def fittingCavityLength(data=None,filename = None,toPlot = False):
                 axes[1].plot(x, comps['L_3'], 'k--', label='Lorentzian 3rd')
                 axes[1].legend(loc='best')
                 plt.show()
-                linewidth_list.append(linewidth)
+                #linewidth_list.append(linewidth)
                 print(first-second)
                 print(second-third)
                 

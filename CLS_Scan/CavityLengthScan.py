@@ -18,10 +18,10 @@ from PySide2.QtWidgets import *
 
 from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
-from cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
+from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
 from signalOutput import signalOutput, workerOutput
-from FFPC_Programs.QFactor.Q_Calc import QFactor
+from FFPC_Programs.cavityCalculations import QFactor
 
 import numpy as np
 from statistics import mean
