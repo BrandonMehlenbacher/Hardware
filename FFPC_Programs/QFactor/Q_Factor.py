@@ -12,7 +12,7 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from APD_Control.Thorlabs_APD import APD_Reader
-from Q_Calc import QFactor
+from FFPC_Programs.cavityCalculations import QFactor
 import numpy as np
 import pyqtgraph as pg
 from FFPC_Programs.initialValues import initializeValues
