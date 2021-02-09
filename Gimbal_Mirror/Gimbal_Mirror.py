@@ -20,6 +20,15 @@ from Thorlabs_Motor.motor_control import Motor
 
 
 class Ui_GimbalMirrors(object):
+    """
+    Designed to control our gimbal mirror mount so that we can scan across our objective
+    This program assumes that you are using thorlabs motors, if this is not the case which is fine
+    just change the folder you are looking in in the above section or better yet make the code better
+    by allowing the user to determine which motor class to work with
+
+    Inputs:
+    Two APT motors and a DC1545M camera from thorlabs
+    """
     def setupUi(self, GimbalMirrors):
         if not GimbalMirrors.objectName():
             GimbalMirrors.setObjectName(u"GimbalMirrors")
@@ -111,6 +120,7 @@ class Ui_GimbalMirrors(object):
             self._x_motor = Motor(self._list_devices[1][1])
             for x in range(len(self._instrument_list)):
                 print(self._instrument_list[x])
+                # this is the serial number for the camera and needs to be changed if camera is switched
                 if self._instrument_list[x]['serial'] == b'4102906167':
                     self._camera = instrument(self._instrument_list[x])
                     break
@@ -122,7 +132,7 @@ class Ui_GimbalMirrors(object):
         else:
             self._x_motor.enable()
             self._y_motor.enable()
-        self._timer.start(50) #10 ms before showing next frame
+        self._timer.start(50) #50 ms before showing next frame
         self._timer.timeout.connect(self.view_camera)
         self.start.setEnabled(False)
         self.stop.setEnabled(True)
@@ -133,9 +143,11 @@ class Ui_GimbalMirrors(object):
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
     def change_x_axis(self):
+        #moves the x-axis motor, this is in terms of the plane of the coverslip
         x_axis_value = self.x_axis.value()/100000
         self._x_motor.move_absolute(x_axis_value)
     def change_y_axis(self):
+        #moves the y-axis motor, this is in terms of the plane of the coverslip
         y_axis_value = self.y_axis.value()/100000
         self._y_motor.move_absolute(y_axis_value)
     def view_camera(self):
