@@ -31,18 +31,15 @@ import pandas as pd
 
 class Ui_CavityLengthScan(object):
     """
-    The whole point of this gui is to simply monitor data gathered from and APD
-    
-    simple description of how to run this program
-    
-    Exec: python ./apd.py from the command line or powershell to initialize the program
+    This is supposed to be the main program for measuring Q-factors, finesses, taking timed measurements and sending signals to the function generator
 
-    Run: Click the start button to begin acquisition. If no daq channel is specified it will prompt you to do so before it attempts to
-    open the GUI. After it is open, the frequency, board input channel, and the max and min voltage can all be changed while running the program
-    To stop data acquisition, simply hit the stop button and it will terminate
-self.apd_graph = pg.PlotWidget(self.centralwidget)
+    simple way to run the program through powershell
+    python ./CavityLengthScan.py
+
+    
     """
     def __init__(self):
+        # whenever you want to track a new value, add the name to the end of this list
         names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
         self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
@@ -260,7 +257,8 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
 
         self.daqList.setCurrentRow(-1)
 
-        #keep all of the set values here
+        # keep all of the set values here, if there are more values you want to track feel free to add those here following the same
+        # outline that is shown below
         self.scanSwitch.setChecked(True)
         self.amplitude.setValue(self.values.getEntry("amplitude"))
         self.funcGenFrequency.setValue(self.values.getEntry("funcGenFrequency"))
@@ -269,7 +267,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         self.frequency.setValue(self.values.getEntry("frequency"))
         self.maxVoltage.setValue(self.values.getEntry("maxVoltage"))
         self.minVoltage.setValue(self.values.getEntry("minVoltage"))
-        self.resolution = 1000000
+        self.resolution = 1000000 # this value is the fastest the daq can read values at, lower will decrease the data points collected but higher will just not work
         QMetaObject.connectSlotsByName(CavityLengthScan)
         #all of the rest of the code that I have added is below
         #If any changes are made to the ui, copy everything down
@@ -277,6 +275,10 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
         #and replace the retranslateUI function.
         self._today = date.today()
         self._traceNum = 0
+        # the function generator code i have written, this is suboptimal as I have hard coded the USB address of the instrument
+        # I am thinking of ways of improving this in the future but for now we are stuck, my idea is to do a query of all the instruments to determine what they are
+        # and then match them to an instrument that we desire by using regular expressions, not totally optimal but better than current approach as we can only currently
+        # use the exact rigol we currently have
         self._rm = visa.ResourceManager()
         self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
@@ -376,7 +378,7 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
-        #in case we want to use the DAQ as the output
+        #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
         #self.output = signalOutput("Dev1/ao0", 1000000,100)
         #self.worker =  workerOutput(self.output)
         #self.worker.start()
@@ -415,6 +417,17 @@ self.apd_graph = pg.PlotWidget(self.centralwidget)
             
     #plots all of the values from the APD in the pyqtplot
     def graph_values(self):
+        """
+        This is used for graphing the values on the apd_graph as well as read the values off of the APD
+
+        Inputs: (Although technically no inputs there are several worth mentioning even though they are embedded in the gui)
+        self.apd_graph: the pyqtgraph we are using in the gui or a matplotlib figure object will also work
+        self._apd: the daq board channel we are reading off from, we consider this the apd because that is where we are generally getting our signal from
+        self.timedOrContinuous: a QCheckbox object that determines if we are measuring it over time or not
+
+        Outputs:
+        a graph with all of the data
+        """
         self.apd_graph.clear()
         self._values = self._apd.read_values()
         self._apd.stop_acquisition()
