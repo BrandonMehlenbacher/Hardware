@@ -1,9 +1,12 @@
 import csv
 import pathlib
+import os
 import sys
 
 class initializeValues(object):
     def __init__(self,names,filename='initialValues.csv'):
+        # changes current working directory to location of python file
+        os.chdir(os.path.abspath(os.path.dirname(sys.argv[0]))) 
         self.filename = filename
         self.names = names
         self.initialValues = self.getInitialValues(names)
