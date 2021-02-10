@@ -209,3 +209,81 @@ class QFactor(object):
         plt.xlabel("Relative Wavelength (pm)")
         plt.show()
             
+def efficiency(mode_radius,core_radius,radius_of_curvature,wavelength):
+    """
+    Inputs:
+    mode_radius: radius of the cavity mode inside of the cavity assumed to be in microns
+    core_radius: simple def, core of the field, complicated def, mode field radius of the field (extends slightly past core of fiber) assumed to be in microns
+    radius_of_curvature: radius of curvature of the fiber, we are assuming a symmetric cavity ie both ROCs are the same. assumed to be in microns
+    wavelength: wavelenght of light we plan to optimally use. Assumed to be in microns
+    Outputs:
+    efficiency: The output is the efficiency of coupling light into the fiber
+    """
+    #return ((2*mode_radius*core_radius)/(mode_radius**2+core_radius**2))**2
+    return 4/(((mode_radius/core_radius)+(core_radius/mode_radius))**2+((np.pi*1.54*mode_radius*core_radius)/(wavelength*radius_of_curvature)))
+def mode_radius_fn(radius_curvature,length_cavity,wavelength):
+    """
+    Inputs:
+    radius_curvature: The radius of curvature of the mirror, this function assumes microns
+    length_cavity: The length of the cavity, this function assumes length is in microns
+    
+    Outputs:
+    mode_radius: The smallest the spot size gets within the cavity
+    """
+    return ((wavelength/(2*np.pi))**0.5)*(length_cavity*(2*radius_of_curvature-length_cavity))**0.25
+
+def rayleigh_range(mode_radius_value, wavelength):
+    """
+    Inputs:
+    spot_size: Smallest size inside of the cavity, assumed to be in microns
+    wavelength: wavelength of light that will be used, assumed to be in microns
+    Outputs:
+    rayleigh_range: The rayleigh range if the system in microns
+    """
+    return (np.pi*mode_radius_value**2)/(wavelength)
+
+def mode_radius_mirror_fn(cavity_length,mode_radius_value,wavelength):
+    """
+    Inputs:
+    cavity_length: length of the cavity in microns
+    mode_radius: the minimum mode waist inside of the cavity in microns
+    wavelength: wavelength of interest in microns
+    Outputs:
+    mode_radius on the the cavity mirror
+    """
+    cavity_length = cavity_length/2
+    rayleigh_range_value = rayleigh_range(mode_radius_value,wavelength)
+    return mode_radius_value*(1+(cavity_length/rayleigh_range_value)**2)**0.5
+
+def clipping_losses(radius_mirror,mode_radius_value):
+    """
+    Inputs:
+    radius_mirror: radius of the mirror, this is half the diameter of the mirror if you go back to the old fiber spreadsheets, in microns
+    mode_radius_value: the size of the mode when it reaches the mirror, calculated from previous mode_radius_mirror, in microns
+    Outputs:
+    Clipping losses associate wtih the mirror
+    """
+    return np.exp(-2*((radius_mirror)**2)/(mode_radius_value**2))
+def finesse_calculations(cavity_length,mirror_diameter,mode_radius_value):
+    """
+    Inputs:
+    cavity_length: the length of the cavity in microns
+    mirror_diameter: the diameter of the mirror in microns
+    mode_radius_value: the size of the mode when it reaches the mirror, calculated from previous mode_radius_mirror, in microns
+    Outputs:
+    Finesse: Calculates the finesse of the cavity in terms of losses
+    """
+    clipping_loss = clipping_losses(mirror_diameter,mode_radius_value)*2
+    finesse_initial = 30000
+    total_losses = (2*np.pi)/finesse_initial
+    #total_losses = 180*10**-6 # tbh i was lazy and decided a constant starting finesse value, this includes absorption,scattering, and transmission losses
+    return (2*np.pi)/(clipping_loss+total_losses)
+
+def cross_sectional_area(mode_radius):
+    return np.pi*mode_radius
+
+def diffraction_limited_spot(radius_of_curvature,mirror_diameter,wavelength):
+    return (wavelength*radius_of_curvature)/(np.pi*mirror_diameter)
+wavevector = lambda x: (2*np.pi)/(x) #x is wavelength and is assumed to be in microns
+def cooperativity(finesse,wavevector,spot_size):
+    return (24*finesse)/(np.pi*(wavevector**2)*spot_size**2)
