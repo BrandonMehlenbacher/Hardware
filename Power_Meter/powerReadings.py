@@ -19,28 +19,49 @@ def printResources(resourceManager):
             pass
     
 class PowerMeter:
-    def __init__(self,resource,duration='Endless'):
+    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1):
         self.resource = ThorlabsPM100(inst=resource)
+        self.averageTime = averagingTime 
         if duration == 'Endless':
             self.duration = 100000000
         else:
             self.duration = duration
-        self.timeSpacing = 0.1
-        self.valuesArray = np.zeros(shape = (2,int(self.duration/self.timeSpacing)+1))
+        self.timeSpacing = 0.1 #how fast to collect the data
+        self.valuesArray = np.zeros(shape = (2,int(self.duration/self.averageTime)+1))
     def run(self):
+        avgReading = []
         currentTime = 0
+        arrayCounter = 0
         plt.xlabel("Time (s)")
         plt.ylabel("Power (mW)")
-        count = 0 
         while currentTime < self.duration:
             try:
                 currentValue = self.resource.read
-                currentTime += self.timeSpacing
-                self.valuesArray[0,count] = currentTime
-                self.valuesArray[1,count] = currentValue*1000
-                plt.plot(self.valuesArray[0,:count],self.valuesArray[1,:count],c='k')
-                plt.pause(self.timeSpacing)
-                count +=1
+                avgReading.append(currentValue)
+                pointsOnScreen = 100
+                # the if else statements below work as the following
+                # the first one checks to see if the length of AvgReading is 10 for 10 data points
+                # the second checks to see if we are at the first iteration
+                # the third should only ever be active at the first iteration
+                # the reasoning behind this is the else statement will operate the fewest number of times improving overall efficiency
+                # I also hate counter variables soooooo yeah
+                if len(avgReading) == 10:
+                    currentTime += self.averageTime
+                    avgValue = sum(avgReading)/len(avgReading)
+                    self.valuesArray[0,arrayCounter] = currentTime
+                    self.valuesArray[1,arrayCounter] = avgValue*1000
+                    plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
+                    plt.pause(self.timeSpacing)
+                    avgReading = []
+                    arrayCounter +=1
+                elif arrayCounter != 0:
+                    time.sleep(self.timeSpacing)
+                else:
+                    self.valuesArray[0,arrayCounter] = currentTime
+                    self.valuesArray[1,arrayCounter] = currentValue*1000
+                    plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
+                    plt.pause(self.timeSpacing)
+                    arrayCounter +=1
             except KeyboardInterrupt:
                 plt.close()
                 sys.exit()
@@ -59,11 +80,14 @@ class PowerMeter:
             new_file = new_file_description+f"_{new_trace}"
             new_trace +=1
         np.savetxt(new_file+".csv", self.valuesArray.transpose(),delimiter = ',')
+        if plt.fignum_exists(1):
+            plt.close()
+
 if __name__ == "__main__":
     rm = visa.ResourceManager()
     #printResources(rm)
     resource = rm.open_resource('USB0::0x1313::0x8078::P0029177::INSTR')
-    powerMeter = PowerMeter(resource, 1)
+    powerMeter = PowerMeter(resource, 10,averagingTime=2)
     powerMeter.run()
     powerMeter.save(filename = "monitorRedLaser")
     
