@@ -19,7 +19,19 @@ def printResources(resourceManager):
             pass
     
 class PowerMeter:
+    """
+    This class is designed for reading values from a Thorlabs power meter
+
+    Inputs:
+    resource: the opened visa resource from the computer
+    duration: how long you want to collect data for
+    averagingTime: how long do you want to average your data for
+    timeSpacing: the distance between each point collected
+
+
+    """
     def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1):
+        assert timeSpacing > 0.001, "We can only read the data points so fast, be patient"
         self.resource = ThorlabsPM100(inst=resource)
         self.averageTime = averagingTime 
         if duration == 'Endless':
@@ -38,14 +50,13 @@ class PowerMeter:
             try:
                 currentValue = self.resource.read
                 avgReading.append(currentValue)
-                pointsOnScreen = 100
                 # the if else statements below work as the following
                 # the first one checks to see if the length of AvgReading is 10 for 10 data points
                 # the second checks to see if we are at the first iteration
                 # the third should only ever be active at the first iteration
                 # the reasoning behind this is the else statement will operate the fewest number of times improving overall efficiency
                 # I also hate counter variables soooooo yeah
-                if len(avgReading) == 10:
+                if len(avgReading) == int(1/self.timeSpacing):
                     currentTime += self.averageTime
                     avgValue = sum(avgReading)/len(avgReading)
                     self.valuesArray[0,arrayCounter] = currentTime
@@ -58,7 +69,7 @@ class PowerMeter:
                     time.sleep(self.timeSpacing)
                 else:
                     self.valuesArray[0,arrayCounter] = currentTime
-                    self.valuesArray[1,arrayCounter] = currentValue*1000
+                    self.valuesArray[1,arrayCounter] = currentValue*1000 # changes the units to mW
                     plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
                     plt.pause(self.timeSpacing)
                     arrayCounter +=1
@@ -87,7 +98,7 @@ if __name__ == "__main__":
     rm = visa.ResourceManager()
     #printResources(rm)
     resource = rm.open_resource('USB0::0x1313::0x8078::P0029177::INSTR')
-    powerMeter = PowerMeter(resource, 10,averagingTime=2)
+    powerMeter = PowerMeter(resource, 10,averagingTime=2,timeSpacing = 0.0001)
     powerMeter.run()
     powerMeter.save(filename = "monitorRedLaser")
     
