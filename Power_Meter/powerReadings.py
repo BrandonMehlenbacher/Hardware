@@ -8,6 +8,7 @@ import time
 from datetime import datetime
 import os
 import pyqtgraph as pg
+import click
 
 
 def printResources(resourceManager):
@@ -28,7 +29,6 @@ class PowerMeter:
     averagingTime: how long do you want to average your data for
     timeSpacing: the distance between each point collected
 
-
     """
     def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1):
         assert timeSpacing > 0.001, "We can only read the data points so fast, be patient"
@@ -40,7 +40,10 @@ class PowerMeter:
             self.duration = duration
         self.timeSpacing = 0.1 #how fast to collect the data
         self.valuesArray = np.zeros(shape = (2,int(self.duration/self.averageTime)+1))
-    def run(self):
+    def run(self,filename):
+        """
+        Starts the acquisition sequence, creates a plot and automatically updates it as more data is collected
+        """
         avgReading = []
         currentTime = 0
         arrayCounter = 0
@@ -75,8 +78,11 @@ class PowerMeter:
                     arrayCounter +=1
             except KeyboardInterrupt:
                 plt.close()
+                self.valuesArray = self.valuesArray[:,:arrayCounter]
+                self.save(filename)
                 sys.exit()
                 break
+        self.save(filename)
     def save(self,filename="data"):
         directory = str(datetime.now().date())
         new_trace = 1
@@ -97,10 +103,12 @@ class PowerMeter:
 if __name__ == "__main__":
     rm = visa.ResourceManager()
     #printResources(rm)
-    resource = rm.open_resource('USB0::0x1313::0x8078::P0029177::INSTR')
-    powerMeter = PowerMeter(resource, 10,averagingTime=2,timeSpacing = 0.0001)
-    powerMeter.run()
-    powerMeter.save(filename = "monitorRedLaser")
+    resource = rm.open_resource('USB0::0x1313::0x8078::P0021183::INSTR')
+    timeDesired = int(input("Input the time you want to measure the power for, remember it only saves at the end: "))
+    powerMeter = PowerMeter(resource, timeDesired)
+    defaultFileName = click.prompt("Enter file name",type=str,default = "power780LaserHead_afterPolarizer")
+    filename = f"{defaultFileName}_{timeDesired}s"
+    powerMeter.run(filename)
     
             
             
