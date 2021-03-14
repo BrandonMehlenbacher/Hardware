@@ -104,7 +104,7 @@ if __name__ == "__main__":
     rm = visa.ResourceManager()
     #printResources(rm)
     resource = rm.open_resource('USB0::0x1313::0x8078::P0021183::INSTR')
-    timeDesired = int(input("Input the time you want to measure the power for, remember it only saves at the end: "))
+    timeDesired = int(input("Input the time you want to measure the power for, can be terminated in the middle: "))
     powerMeter = PowerMeter(resource, timeDesired)
     defaultFileName = click.prompt("Enter file name",type=str,default = "power780LaserHead_afterPolarizer")
     filename = f"{defaultFileName}_{timeDesired}s"
