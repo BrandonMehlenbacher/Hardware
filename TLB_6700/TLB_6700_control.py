@@ -26,21 +26,15 @@ class TLB_6700_controller(object):
         self._ID_list = [1] #only able to use one laser until i figure out the issue with device key or ID
         self._controllers = self.controllers_list(self._newport_device_info)
         if len(self._controllers) == 0:
-            print("there was an issue initalizing the controller")
+            print("there was an issue initalizing the controller, try unplugging the usb connection and plugging it back in. \nIf it is still broken talk to Brandon")
             sys.exit()
-        print(self._controllers)
         self.set_IDs_Newport(self._controllers)
         self._current_wavelength = 0
         self._current = 40 # this will be in mA
         self._turned_on = 0 #if any laser is turned on
-        self._piezo_voltage = 0
-        self._lasing_power = 0
         self._wavelength_range = [[]] # list of list of wavelength ranges for the lasers
         self._scanning_range = []
-        #self.set_wavelength_range()
-        #self.initialize_laser_conditions()
-    def intialize_laser_conditions(self):
-        pass
+  
     def set_IDs_Newport(self,array_list):
         for x in range(len(array_list)):
             if (array_list[x].get_Description()[29:] == self._desired_laser):
@@ -62,140 +56,94 @@ class TLB_6700_controller(object):
             if (USB_controllers[controller].get_Description()[29:] in self._lasers_lab):
                 controller_list.append(USB_controllers[controller])
         return controller_list
-    def set_wavelength_range(self):
-        string_MIN = StringBuilder()
-        string_MAX = StringBuilder()
-        for x in range(len(array_list)):
-            self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MAX?',string_MAX)
-            self._newport_devices.Query(self._ID_list[0],'SOUR:WAVE:MIN?',string_MIN)
-            self._wavelength_range.append([string_MIN,string_MAX])
-    def laser_status(self,status):
-        """
-        inputs:
-        Status is whether the laser is turned on or turned off
-        """
-        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {status}')
-        self._turned_on = status
-    def turnOn(self):
-        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {1}')
-    def turnOff(self):
-        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {0}')
-    @property
-    def turned_on(self):
-        return self._turned_on
-    @property
-    def wavelength(self):
-        return self._current_wavelength
-    @wavelength.setter
-    def wavelength(self):
-        wavelength_string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],'SENSE:WAVE?',wavelength_string)
-        self._current_wavelength = int(wavelength_string)
-    @property
-    def lasing_power(self):
-        return self._lasing_power
-    def lasing_power(self,power):
-        power_string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],f'SOURCE:POWER:DIODE {power}',power_string)
-        self._lasing_power = int(power_string)
-    @property
-    def current(self):
-        return self._current
-    @current.setter
-    def current(self,desired_current):
-        """
-        Inputs:
-        desired current: this is the current (or power) desired from the laser, enter in mA
-        """
-        current_string = StringBuilder()
-        desired_current = desired_current #this allows user to enter the value in mA
-        #self._newport_devices.Query(self._ID_list[0],f'SOURCE:CURRENT:DIODE {desired_current}',current_string)
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:CURRENT:DIODE {desired_current}')
-        self._current = desired_current
-    @property
-    def scanning_range(self):
-        print(f"The scan starts at {self._scanning_range[0]} and ends at {self._scanning_range[1]}")
-        return self._scanning
-    @scanning_range.setter
-    def scanning_range(self,start,end):
-        start_scan = StringBuilder()
-        end_scan = StringBuilder()
-        if start < self._wavelength_range[0]:
-            print(f"Start is less than the minimum range {self._wavelength_range[0]}, input valid number")
-            exit()
-        elif end > self._wavelength_range[1]:
-            print(f"Start is greater than the maximum range {self._wavelength_range[1]}, input valid number")
-            exit()
-        self._newport_devices.Query(self._ID_list[0],f'SOURCE:WAVE:START {start}',start_scan)        
-        self._newport_devices.Query(self._ID_list[0],f'SOURCE:WAVE:STOP {end}',end_scan)
-        self._scanning_range = [int(start_scan),int(end_scan)]
-    @property
-    def piezo_voltage(self):
-        return self._piezo_voltage
-    @piezo_voltage.setter
-    def piezo_voltage(self,volt):
-        voltage_string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],f'SOURCE:VOLTAGE:PIEZO {volt}',voltage_string)
-        self._piezo_voltage = int(volt_string)
-    def start_scan(self,number_of_scans):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVE:DESSCANS {number_of_scans}')
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVE:START')
+
+    def operation_completed(self):
+        string = StringBuilder()
+        self._newport_devices.Query(self._ID_list[0],'*OPC?',string)
+        if int(string) == 1:
+            return True
+        else:
+            return False
+
+    def get_actual_number_scans(self):
+        string = StringBuilder()
+        self._newport_devices.Query(self._ID_list[0],'SENSE:WAVELENGTH?',string)
+        self._number_scans = int(string)
+
+    def output_state_laser(self,state):
+        #if state is 1 the laser will be turned on if it is 0 the laser will be turned off
+        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {state}')
+        
+    def get_wavelength(self):
+        string = StringBuilder()
+        self._newport_devices.Query(self._ID_list[0],'SENSE:WAVELENGTH?',string)
+        self._current_wavelength = int(string)
+        #just for debugging purposes
+        print(self._current_wavelength)
+
+    def get_current_diode(self):
+        string = StringBuilder()
+        self._newport_devices.Query(self._ID_list[0],'SENSE:CURRENT:DIODE?',string)
+        self._current = int(wavelength_string)
+        
+    def get_power_diode(self):
+        string = StringBuilder()
+        self._newport_devices.Query(self._ID_list[0],'SENSE:POWER:DIODE?',string)
+        self._power = int(wavelength_string)
+        
+    def change_wavelength(self,newWavelength):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH {newWavelength}')
+        self.wavelength = newWavelength
+        
+    def change_state_lambda_track(self,state):
+            self._newport_devices.Write(self._ID_list[0],f'OUTPUT:STATE {state}')
+
+    def change_laser_power(self,power):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:POWER:DIODE {power}')
+
+    def change_start_scan_wavelength(self,wavelength):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:START {wavelength}')
+        
+    def change_end_scan_wavelength(self,wavelength):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:END {wavelength}')
+   
+    def change_velocity_wavelength_change_forward(self,velocity):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:SLEW:FORWARD {velocity}')
+        
+    def change_velocity_wavelength_change_reverse(self,velocity):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:SLEW:REVERSE {velocity}')
+        
+    def change_number_scans(self,scans):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:DESSCANS {scans}')
+
+    def change_mode_laser_power(self,state):
+        self._newport_devices.Write(self._ID_list[0],f'SOURCE:CPOWER {state}')
+        
+    def start_scan(self):
+        self._newport_devices.Write(self._ID_list[0],f'OUTPUT:SCAN:START')
+
+    def end_scan(self):
+        self._newport_devices.Write(self._ID_list[0],f'OUTPUT:SCAN:STOP')        
+
     def close_devices(self):
         self._newport_devices.CloseDevices()
-#new_port_devices = Newport.USBComm.USB()
 
 lasers = ["SN18084","SN41044"]
-def set_IDs_Newport(array_list):
-    for x in range(len(array_list)):
-        print(array_list[x].get_Description())
-        """
-        if (array_list[x].get_Description()[29:] == lasers[0]):
-            array_list[x].set_ID(0)
-        elif (array_list[x].get_Description()[29:] == lasers[1]):
-              array_list[x].set_ID(1)
-        """
-#my_array = []
-#new_port_devices = Newport.USBComm.USB()
-#device_key = '6700 SN18084'
-#my_device.OpenDevices("New_Focus 6700 v2.4 03/19/14 SN41044",usingDeviceKey = True)
-#new_port_devices.OpenDevices(device_key,usingDeviceKey=True)
-#print(len(new_port_device_info))
-
-#set_IDs_Newport(new_port_device_info)
-#my_device.OpenDevices(0x100A)
-#my_table = Hashtable()
-#my_device.GetDeviceTable()
-#print(my_device.GetDeviceTable())
-
-#my_device.OpenDevices(myString,usingDeviceKey = True)
-#my_device.get_Description()
-
-#my_array = my_device.GetDevInfoList()
-#help(my_array[0])
-#my_array[0])
-
-#set_IDs_Newport(my_array)
-#string = StringBuilder()
-#time.sleep(1)
-
-#device = "6700SN18084"
-#print(string)
-
-#my_device.Write(1,'OUTP:STAT {1}')
-#time.sleep(3)
-#my_device.Write(0,'OUTP:STAT {1}')
-#time.sleep(20)
-#my_device.Write(1,'OUTP:STAT {0}')
-#time.sleep(3)
-#my_device.Write(0,'OUTP:STAT {0}')
-#new_port_devices.CloseDevices()
 
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
     laser.current = 55
-    #time.sleep(1)
-    #print(laser.current)
-    laser.turnOn()
-    time.sleep(20)
-    laser.turnOff()
-    time.sleep(10)
+    settingChange = -1
+    while settingChange != 20:
+        settingChange = int(input("What would you like to do to the laser? \n 1: Turn On \n 2: Turn Off \n 3: Start Scan \n 4: Print Wavelength \n 5: Change Wavelength"))
+        if settingChange == 1:
+            laser.output_state_laser(1)
+        elif settingChange == 2:
+            laser.output_state_laser(0)
+        elif settingChange == 3:
+            laser.start_scan(1)
+        elif settingChange == 4:
+            print(laser.wavelength)
+        elif settingChange == 5:
+            laser.change_wavelength(780.00)
+    laser.close_devices()
