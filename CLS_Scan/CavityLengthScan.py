@@ -22,6 +22,7 @@ from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be 
 from FFPC_Programs.initialValues import initializeValues
 from signalOutput import signalOutput, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
+from TLB_6700.TLB_6700_control import TLB_6700_controller
 
 import numpy as np
 from statistics import mean
@@ -45,7 +46,7 @@ class Ui_CavityLengthScan(object):
     def setupUi(self, CavityLengthScan):
         if not CavityLengthScan.objectName():
             CavityLengthScan.setObjectName(u"CavityLengthScan")
-        CavityLengthScan.resize(1178, 701)
+        CavityLengthScan.resize(1537, 701)
         self.centralwidget = QWidget(CavityLengthScan)
         self.centralwidget.setObjectName(u"centralwidget")
         self.apd_graph = pg.PlotWidget(self.centralwidget)
@@ -244,6 +245,132 @@ class Ui_CavityLengthScan(object):
         self.calculateFinesse.setObjectName(u"calculateFinesse")
         self.calculateFinesse.setGeometry(QRect(900, 530, 171, 41))
         self.calculateFinesse.setFont(font)
+        
+        self.labelLaserConditions = QLabel(self.centralwidget)
+        self.labelLaserConditions.setObjectName(u"labelLaserConditions")
+        self.labelLaserConditions.setGeometry(QRect(910, 40, 141, 16))
+        font2 = QFont()
+        font2.setPointSize(12)
+        font2.setBold(True)
+        font2.setWeight(75)
+        self.labelLaserConditions.setFont(font2)
+        self.controlLaser = QCheckBox(self.centralwidget)
+        self.controlLaser.setObjectName(u"controlLaser")
+        self.controlLaser.setEnabled(True)
+        self.controlLaser.setGeometry(QRect(910, 70, 121, 31))
+        self.controlLaser.setFont(font)
+        self.controlLaser.setChecked(True)
+        self.laserStatus = QCheckBox(self.centralwidget)
+        self.laserStatus.setObjectName(u"laserStatus")
+        self.laserStatus.setGeometry(QRect(910, 110, 101, 16))
+        self.laserStatus.setFont(font)
+        self.startWavelengthScan = QPushButton(self.centralwidget)
+        self.startWavelengthScan.setObjectName(u"startWavelengthScan")
+        self.startWavelengthScan.setGeometry(QRect(1110, 80, 181, 31))
+        self.startWavelengthScan.setFont(font)
+        self.stopWavelengthScan = QPushButton(self.centralwidget)
+        self.stopWavelengthScan.setObjectName(u"stopWavelengthScan")
+        self.stopWavelengthScan.setGeometry(QRect(1310, 80, 181, 31))
+        self.stopWavelengthScan.setFont(font)
+        self.displayWavelength = QLCDNumber(self.centralwidget)
+        self.displayWavelength.setObjectName(u"displayWavelength")
+        self.displayWavelength.setGeometry(QRect(910, 274, 141, 31))
+        self.labelWavelengthDisplay = QLabel(self.centralwidget)
+        self.labelWavelengthDisplay.setObjectName(u"labelWavelengthDisplay")
+        self.labelWavelengthDisplay.setGeometry(QRect(910, 250, 121, 20))
+        self.labelWavelengthDisplay.setFont(font)
+        self.displayCurrent = QLCDNumber(self.centralwidget)
+        self.displayCurrent.setObjectName(u"displayCurrent")
+        self.displayCurrent.setGeometry(QRect(910, 330, 141, 31))
+        self.labelDisplayCurrent = QLabel(self.centralwidget)
+        self.labelDisplayCurrent.setObjectName(u"labelDisplayCurrent")
+        self.labelDisplayCurrent.setGeometry(QRect(910, 310, 121, 20))
+        self.labelDisplayCurrent.setFont(font)
+        self.labelDisplayPower = QLabel(self.centralwidget)
+        self.labelDisplayPower.setObjectName(u"labelDisplayPower")
+        self.labelDisplayPower.setGeometry(QRect(1080, 310, 121, 20))
+        self.labelDisplayPower.setFont(font)
+        self.displayPower = QLCDNumber(self.centralwidget)
+        self.displayPower.setObjectName(u"displayPower")
+        self.displayPower.setGeometry(QRect(1080, 330, 141, 31))
+        self.setWavelength = QDoubleSpinBox(self.centralwidget)
+        self.setWavelength.setObjectName(u"setWavelength")
+        self.setWavelength.setGeometry(QRect(910, 210, 141, 31))
+        self.setWavelength.setFont(font)
+        self.setWavelength.setMinimum(765.000000000000000)
+        self.setWavelength.setMaximum(781.000000000000000)
+        self.setWavelength.setSingleStep(0.010000000000000)
+        self.labelSetWavelength = QLabel(self.centralwidget)
+        self.labelSetWavelength.setObjectName(u"labelSetWavelength")
+        self.labelSetWavelength.setGeometry(QRect(910, 180, 161, 20))
+        self.labelSetWavelength.setFont(font)
+        self.setCurrentPower = QDoubleSpinBox(self.centralwidget)
+        self.setCurrentPower.setObjectName(u"setCurrentPower")
+        self.setCurrentPower.setGeometry(QRect(1080, 270, 141, 31))
+        self.setCurrentPower.setFont(font)
+        self.setCurrentPower.setMaximum(200.000000000000000)
+        self.labelSetCurrentPower = QLabel(self.centralwidget)
+        self.labelSetCurrentPower.setObjectName(u"labelSetCurrentPower")
+        self.labelSetCurrentPower.setGeometry(QRect(1080, 240, 211, 20))
+        self.labelSetCurrentPower.setFont(font)
+        self.powerOrCurrent = QCheckBox(self.centralwidget)
+        self.powerOrCurrent.setObjectName(u"powerOrCurrent")
+        self.powerOrCurrent.setGeometry(QRect(1080, 210, 181, 17))
+        self.powerOrCurrent.setFont(font)
+        self.powerOrCurrent.setChecked(True)
+        self.setStartWavelengthScan = QDoubleSpinBox(self.centralwidget)
+        self.setStartWavelengthScan.setObjectName(u"startWavelengthScan_2")
+        self.setStartWavelengthScan.setGeometry(QRect(1210, 120, 81, 22))
+        self.setStartWavelengthScan.setFont(font)
+        self.setStartWavelengthScan.setMinimum(765.000000000000000)
+        self.setStartWavelengthScan.setMaximum(780.990000000000009)
+        self.setEndWavelengthScan = QDoubleSpinBox(self.centralwidget)
+        self.setEndWavelengthScan.setObjectName(u"endWavelengthScan")
+        self.setEndWavelengthScan.setGeometry(QRect(1210, 150, 81, 22))
+        self.setEndWavelengthScan.setFont(font)
+        self.setEndWavelengthScan.setMinimum(765.009999999999991)
+        self.setEndWavelengthScan.setMaximum(781.000000000000000)
+        self.scanSpeed = QDoubleSpinBox(self.centralwidget)
+        self.scanSpeed.setObjectName(u"scanSpeed")
+        self.scanSpeed.setGeometry(QRect(1440, 150, 81, 22))
+        self.scanSpeed.setFont(font)
+        self.scanSpeed.setMinimum(0.010000000000000)
+        self.scanSpeed.setMaximum(8.000000000000000)
+        self.scanSpeed.setSingleStep(0.010000000000000)
+        self.scanSpeed.setValue(0.100000000000000)
+        self.labelStartWavelength = QLabel(self.centralwidget)
+        self.labelStartWavelength.setObjectName(u"labelStartWavelength")
+        self.labelStartWavelength.setGeometry(QRect(1030, 120, 171, 21))
+        self.labelStartWavelength.setFont(font)
+        self.labelStartWavelength.setLayoutDirection(Qt.LeftToRight)
+        self.labelStartWavelength.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.labelStartWavelength.setWordWrap(False)
+        self.labelEndWavelength = QLabel(self.centralwidget)
+        self.labelEndWavelength.setObjectName(u"labelEndWavelength")
+        self.labelEndWavelength.setGeometry(QRect(1030, 150, 171, 21))
+        self.labelEndWavelength.setFont(font)
+        self.labelEndWavelength.setLayoutDirection(Qt.LeftToRight)
+        self.labelEndWavelength.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.labelEndWavelength.setWordWrap(False)
+        self.labelScanSpeed = QLabel(self.centralwidget)
+        self.labelScanSpeed.setObjectName(u"labelScanSpeed")
+        self.labelScanSpeed.setGeometry(QRect(1260, 150, 171, 21))
+        self.labelScanSpeed.setFont(font)
+        self.labelScanSpeed.setLayoutDirection(Qt.LeftToRight)
+        self.labelScanSpeed.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.labelScanSpeed.setWordWrap(False)
+        self.numberOfScans = QSpinBox(self.centralwidget)
+        self.numberOfScans.setObjectName(u"numberOfScans")
+        self.numberOfScans.setGeometry(QRect(1440, 120, 81, 22))
+        self.numberOfScans.setFont(font)
+        self.numberOfScans.setMinimum(1)
+        self.numberOfScans.setMaximum(1000)
+        self.labelNumberOfScans = QLabel(self.centralwidget)
+        self.labelNumberOfScans.setObjectName(u"labelNumberOfScans")
+        self.labelNumberOfScans.setGeometry(QRect(1290, 120, 141, 20))
+        self.labelNumberOfScans.setFont(font)
+        self.labelNumberOfScans.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        
         CavityLengthScan.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(CavityLengthScan)
         self.menubar.setObjectName(u"menubar")
@@ -280,14 +407,20 @@ class Ui_CavityLengthScan(object):
         # and then match them to an instrument that we desire by using regular expressions, not totally optimal but better than current approach as we can only currently
         # use the exact rigol we currently have
         self._rm = visa.ResourceManager()
-        self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+        try:
+            self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+        except visa.errors.VisaIOError:
+            print("Make sure the function generator is turned on")
+            sys.exit()
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
+        self.connect_to_laser()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None
         self._apd = None
         self._active = False
         self._values = None
+        self.laser = None
         #for timed channel
         self.timedList = []
         self.timedValues = []
@@ -308,6 +441,9 @@ class Ui_CavityLengthScan(object):
         self.offset.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
         self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
+        self.controlLaser.stateChanged.connect(self.connect_to_laser)
+        self.laserStatus.stateChanged.connect(self.change_laser_state)
+        self.setWavelength.valueChanged.connect(self.change_laser_wavelength)
         
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
@@ -338,12 +474,12 @@ class Ui_CavityLengthScan(object):
 
         self.labelMinVoltage.setText(QCoreApplication.translate("CavityLengthScan", u"Minimum Voltage", None))
         self.labelMaxVoltage.setText(QCoreApplication.translate("CavityLengthScan", u"Maximum Voltage", None))
-        self.cavityName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"P15F2_planarCavity", None))
+        self.cavityName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Cavity", None))
         self.labelFolderName.setText(QCoreApplication.translate("CavityLengthScan", u"Folder Name?", None))
         self.labelComments.setText(QCoreApplication.translate("CavityLengthScan", u"Comments?", None))
         self.labelCavityName.setText(QCoreApplication.translate("CavityLengthScan", u"Cavity Name?", None))
         self.labelWhoAreYou.setText(QCoreApplication.translate("CavityLengthScan", u"Who Are you?", None))
-        self.comments.setPlainText(QCoreApplication.translate("CavityLengthScan", u"CLS", None))
+        self.comments.setPlainText("")
 
         __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
         self.whoAreYou.setSortingEnabled(False)
@@ -361,7 +497,7 @@ class Ui_CavityLengthScan(object):
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("CavityLengthScan", u"File Location Path", None))
         self.localOrDatabackup.setText(QCoreApplication.translate("CavityLengthScan", u"Local (T) / Databackup (F)", None))
-        self.folderName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Raman", None))
+        self.folderName.setPlainText(QCoreApplication.translate("CavityLengthScan", u"Cavity", None))
         self.save.setText(QCoreApplication.translate("CavityLengthScan", u"Save", None))
         self.labelAPDControls.setText(QCoreApplication.translate("CavityLengthScan", u"APD Controls", None))
         self.labelFuncGenControls.setText(QCoreApplication.translate("CavityLengthScan", u"Func Gen Controls", None))
@@ -375,6 +511,22 @@ class Ui_CavityLengthScan(object):
         self.labelLengthOfMeasurement.setText(QCoreApplication.translate("CavityLengthScan", u"Length of Measurement time (s)", None))
         self.QFactorOrFinesse.setText(QCoreApplication.translate("CavityLengthScan", u"Quality Factor (T)/Finesse (F)", None))
         self.calculateFinesse.setText(QCoreApplication.translate("CavityLengthScan", u"Calculate Q/Finesse", None))
+        self.labelLaserConditions.setText(QCoreApplication.translate("CavityLengthScan", u"Laser Conditions", None))
+        self.controlLaser.setText(QCoreApplication.translate("CavityLengthScan", u"Control Laser", None))
+        self.laserStatus.setText(QCoreApplication.translate("CavityLengthScan", u"ON/OFF", None))
+        self.startWavelengthScan.setText(QCoreApplication.translate("CavityLengthScan", u"Start Wavelength Scan", None))
+        self.stopWavelengthScan.setText(QCoreApplication.translate("CavityLengthScan", u"Stop Wavelength Scan", None))
+        self.labelWavelengthDisplay.setText(QCoreApplication.translate("CavityLengthScan", u"Wavelength (nm)", None))
+        self.labelDisplayCurrent.setText(QCoreApplication.translate("CavityLengthScan", u"Current (mA)", None))
+        self.labelDisplayPower.setText(QCoreApplication.translate("CavityLengthScan", u"Power (mW)", None))
+        self.labelSetWavelength.setText(QCoreApplication.translate("CavityLengthScan", u"Set Wavelength", None))
+        self.labelSetCurrentPower.setText(QCoreApplication.translate("CavityLengthScan", u"Set Current/Power (mA/mW)", None))
+        self.powerOrCurrent.setText(QCoreApplication.translate("CavityLengthScan", u"Power(T)/Current(F)", None))
+        self.labelStartWavelength.setText(QCoreApplication.translate("CavityLengthScan", u"Start Wavelength (nm)", None))
+        self.labelEndWavelength.setText(QCoreApplication.translate("CavityLengthScan", u"End Wavelength (nm)", None))
+        self.labelScanSpeed.setText(QCoreApplication.translate("CavityLengthScan", u"Scan Speed (nm/s)", None))
+        self.labelNumberOfScans.setText(QCoreApplication.translate("CavityLengthScan", u"Number Of Scans", None))
+        
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
@@ -517,6 +669,25 @@ class Ui_CavityLengthScan(object):
             self.qFactor()
         else:
             pass
+
+    def connect_to_laser(self):
+        if self.controlLaser.isChecked():
+            self.laser = TLB_6700_controller("SN41044")
+        else:
+            if self.laser != None:
+                self.laser.close_devices()
+
+    def change_laser_state(self):
+        if self.laserStatus.isChecked():
+            self.laser.output_state_laser(1)
+        else:
+            self.laser.output_state_laser(0)
+
+    def change_laser_wavelength(self):
+        if self.laser.operation_completed():
+            self.laser.change_wavelength(self.setWavelength.value())
+        #self.displayWavelength.display(self.laser.get_wavelength())
+        
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
