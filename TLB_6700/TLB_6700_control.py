@@ -29,12 +29,7 @@ class TLB_6700_controller(object):
             print("there was an issue initalizing the controller, try unplugging the usb connection and plugging it back in. \nIf it is still broken talk to Brandon")
             sys.exit()
         self.set_IDs_Newport(self._controllers)
-        self._current_wavelength = 0
-        self._current = 40 # this will be in mA
-        self._turned_on = 0 #if any laser is turned on
-        self._wavelength_range = [[]] # list of list of wavelength ranges for the lasers
-        self._scanning_range = []
-  
+        
     def set_IDs_Newport(self,array_list):
         for x in range(len(array_list)):
             if (array_list[x].get_Description()[29:] == self._desired_laser):
@@ -60,7 +55,8 @@ class TLB_6700_controller(object):
     def operation_completed(self):
         string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'*OPC?',string)
-        if int(string) == 1:
+        string = string.ToString()
+        if string == "1":
             return True
         else:
             return False
@@ -68,7 +64,8 @@ class TLB_6700_controller(object):
     def get_actual_number_scans(self):
         string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'SENSE:WAVELENGTH?',string)
-        self._number_scans = int(string)
+        string = string.ToString()
+        self._number_scans = int(string.t)
 
     def output_state_laser(self,state):
         #if state is 1 the laser will be turned on if it is 0 the laser will be turned off
@@ -77,6 +74,7 @@ class TLB_6700_controller(object):
     def get_wavelength(self):
         string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'SENSE:WAVELENGTH?',string)
+        string = string.ToString()
         self._current_wavelength = int(string)
         #just for debugging purposes
         print(self._current_wavelength)
@@ -84,11 +82,13 @@ class TLB_6700_controller(object):
     def get_current_diode(self):
         string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'SENSE:CURRENT:DIODE?',string)
+        string = string.ToString()
         self._current = int(wavelength_string)
         
     def get_power_diode(self):
         string = StringBuilder()
         self._newport_devices.Query(self._ID_list[0],'SENSE:POWER:DIODE?',string)
+        string = string.ToString()
         self._power = int(wavelength_string)
         
     def change_wavelength(self,newWavelength):
@@ -128,8 +128,6 @@ class TLB_6700_controller(object):
     def close_devices(self):
         self._newport_devices.CloseDevices()
 
-lasers = ["SN18084","SN41044"]
-
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
     laser.current = 55
@@ -146,4 +144,6 @@ if __name__ == '__main__':
             print(laser.wavelength)
         elif settingChange == 5:
             laser.change_wavelength(780.00)
+        elif settingChange ==6:
+            laser.operation_completed()
     laser.close_devices()
