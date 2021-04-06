@@ -29,6 +29,7 @@ from statistics import mean
 import pyqtgraph as pg
 import pyvisa as visa
 import pandas as pd
+import time
 
 class Ui_CavityLengthScan(object):
     """
@@ -275,6 +276,7 @@ class Ui_CavityLengthScan(object):
         self.displayWavelength = QLCDNumber(self.centralwidget)
         self.displayWavelength.setObjectName(u"displayWavelength")
         self.displayWavelength.setGeometry(QRect(910, 274, 141, 31))
+        self.displayWavelength.setDigitCount(9)
         self.labelWavelengthDisplay = QLabel(self.centralwidget)
         self.labelWavelengthDisplay.setObjectName(u"labelWavelengthDisplay")
         self.labelWavelengthDisplay.setGeometry(QRect(910, 250, 121, 20))
@@ -330,6 +332,7 @@ class Ui_CavityLengthScan(object):
         self.setEndWavelengthScan.setFont(font)
         self.setEndWavelengthScan.setMinimum(765.009999999999991)
         self.setEndWavelengthScan.setMaximum(781.000000000000000)
+        self.setEndWavelengthScan.setValue(781.00)
         self.scanSpeed = QDoubleSpinBox(self.centralwidget)
         self.scanSpeed.setObjectName(u"scanSpeed")
         self.scanSpeed.setGeometry(QRect(1440, 150, 81, 22))
@@ -441,9 +444,14 @@ class Ui_CavityLengthScan(object):
         self.offset.valueChanged.connect(self.func_generation)
         self.save.clicked.connect(self.save_values)
         self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
+        
         self.controlLaser.stateChanged.connect(self.connect_to_laser)
         self.laserStatus.stateChanged.connect(self.change_laser_state)
         self.setWavelength.valueChanged.connect(self.change_laser_wavelength)
+        self.startWavelengthScan.clicked.connect(self.start_scan)
+        self.stopWavelengthScan.clicked.connect(self.stop_scan)
+        self.setStartWavelengthScan.valueChanged.connect(self.change_start_scan_wavelength)
+        self.setEndWavelengthScan.valueChanged.connect(self.change_end_scan_wavelength)
         
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
@@ -680,12 +688,36 @@ class Ui_CavityLengthScan(object):
     def change_laser_state(self):
         if self.laserStatus.isChecked():
             self.laser.output_state_laser(1)
+            time.sleep(2)
         else:
             self.laser.output_state_laser(0)
+            time.sleep(0.1)
 
     def change_laser_wavelength(self):
-        if self.laser.operation_completed():
-            self.laser.change_wavelength(self.setWavelength.value())
+        #if self.laser.operation_completed():
+        self.laser.change_state_lambda_track(1)
+        self.laser.change_wavelength(self.setWavelength.value())
+        self.displayWavelength.display(self.laser.get_wavelength())
+        time.sleep(0.1)
+        
+    def change_number_scans(self):
+        self.laser.change_number_scans(self.numberOfScans.value())
+        time.sleep(0.1)
+        
+    def change_start_scan_wavelength(self):
+        self.laser.change_start_scan_wavelength(self.setStartWavelengthScan.value())
+        time.sleep(0.1)
+
+    def change_end_scan_wavelength(self):
+        self.laser.change_start_scan_wavelength(self.setEndWavelengthScan.value())
+        time.sleep(0.1)
+
+    def start_scan(self):
+        self.laser.change_state_lambda_track(1)
+        self.laser.start_scan()
+
+    def stop_scan(self):
+        self.laser.end_scan()
         #self.displayWavelength.display(self.laser.get_wavelength())
         
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
