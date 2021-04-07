@@ -25,6 +25,7 @@ class TLB_6700_controller(object):
         self._lasers_lab = ["SN18084","SN41044"] #this is a list of the laser controllers we have in lab
         self._ID_list = [1] #only able to use one laser until i figure out the issue with device key or ID
         self._controllers = self.controllers_list(self._newport_device_info)
+        self.buffer = StringBuilder(64)
         if len(self._controllers) == 0:
             print("There was an issue initalizing the controller, try unplugging the usb connection and plugging it back in. \nIf it is still broken talk to Brandon")
             sys.exit()
@@ -52,124 +53,224 @@ class TLB_6700_controller(object):
                 controller_list.append(USB_controllers[controller])
         return controller_list
 
-    def successfully_get_value(self,argument,expected_string_length):
-        count = 0
-        string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],argument,string)
-        string = string.ToString()
-        while count <= 10**2:
-            try:
-                if len(string) <= expected_string_length and len(string) >=1:
-                    
-                    return string
-            except ValueError:
-                string = StringBuilder()
-                self._newport_devices.Query(self._ID_list[0],argument,string)
-                string = string.ToString()
-                count +=1
-                time.sleep(0.01)
-        print("value unable to be read")
+    def query(self,argument):
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        return string
     
     def operation_completed(self):
-        string = StringBuilder(64)
-        self._newport_devices.Query(self._ID_list[0],'*OPC?\n',string)
-        string = string.ToString()
+        self.buffer.Clear()
+        argument = '*OPC?\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
         if string == "1":
-            print(string)
             return True
         else:
-            print(string)
+            return False
+
+    def check_lambda_track(self):
+        argument = 'OUTP:TRAC?\n'
+        self.buffer.Clear()
+        if not self.status_byte:
+            self.get_error_string()
+            string = ""
+        else:
+            self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+            string = self.buffer.ToString()
+        if string == "1":
+            return True
+        else:
             return False
 
     def get_actual_number_scans(self):
-        #fix this
-        string = StringBuilder(64)
-        self._newport_devices.Query(self._ID_list[0],'SOURCE:WAVELENGTH:ACTSCANS?\n',string)
-        string = string.ToString()
-        self._number_scans = int(string)
+        string = self.buffer.Clear()
+        argument = 'SOUR:WAVE:ACTSCANS?\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        try:
+            return int(string)
+        except ValueError:
+            return 0
 
     def output_state_laser(self,state):
         #if state is 1 the laser will be turned on if it is 0 the laser will be turned off
-        self._newport_devices.Write(self._ID_list[0],f'OUTP:STAT {state}\n')
+        argument = f'OUTP:STAT {state}\n'
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],f'OUTP:STAT {state}\n',self.buffer)
+        string = self.buffer.ToString()
         
     def get_wavelength(self):
-        expected_string_length = 7
-        argument = 'SENSE:WAVELENGTH?\n'
-        count = 0
-        string = StringBuilder(64)
-        self._newport_devices.Query(self._ID_list[0],argument,string)
-        string = string.ToString()
-        while count <= 10**2:
-            try:
-                if len(string) <= expected_string_length:
-                    value = float(string)
-                    return string
-            except ValueError:
-                string = StringBuilder(64)
-                self._newport_devices.Query(self._ID_list[0],argument,string)
-                string = string.ToString()
-                count +=1
-                time.sleep(0.01)
+        argument = 'SENS:WAVE?\n'
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        try:
+            value = float(string)
+            return value
+        except ValueError:
+            print(string)
                 
+    def status_byte(self):
+        argument = '*STB?\n'
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string == "0":
+            return True
+        elif string == "1":
+            return False
+        
     def get_current_diode(self):
-        string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],'SENSE:CURRENT:DIODE?\n',string)
-        string = string.ToString()
-        self._current = int(wavelength_string)
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],'SENS:CURR:DIOD?\n',self.buffer)
+        string = self.buffer.ToString()
+        try:
+            return float(string)
+        except ValueError:
+            return 0
         
     def get_power_diode(self):
-        string = StringBuilder()
-        self._newport_devices.Query(self._ID_list[0],'SENSE:POWER:DIODE?\n',string)
-        string = string.ToString()
-        self._power = float(wavelength_string)
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],'SENS:POW:DIOD?\n',self.buffer)
+        string = self.buffer.ToString()
+        try:
+            return float(string)
+        except ValueError:
+            return 0
         
     def change_wavelength(self,newWavelength):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH {newWavelength}\n')
+        self.buffer.Clear()
+        newWavelength = round(newWavelength,2)
+        argument = f'SOUR:WAVE {newWavelength}\n' 
+        if not self.status_byte:
+            self.get_error_string()
+        else:
+            self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+            string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
         
-    def change_state_lambda_track(self,state):
-            self._newport_devices.Write(self._ID_list[0],f'OUTPUT:TRACK {state}\n')
+        
+    def change_state_lambda_track_on(self):
+            self.buffer.Clear()
+            argument = 'OUTPUT:TRACK 1\n'
+            if not self.status_byte:
+                self.get_error_string()
+                print("error checking change wavelength")
+            elif self.operation_completed():
+                self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+                string = self.buffer.ToString()
+            else:
+                string = ""
+            if string != "OK":
+               print(string)
+
+    def change_state_lambda_track_off(self):
+            self.buffer.Clear()
+            argument = 'OUTPUT:TRACK 0\n'
+            if not self.status_byte:
+                self.get_error_string()
+            else:
+                self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+                string = self.buffer.ToString()
+            if string != "OK":
+               print(string)
 
     def change_laser_power(self,power):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:POWER:DIODE {power}\n')
+        self.buffer.Clear()
+        argument = f'SOUR:POW:DIOD {power}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
 
     def change_start_scan_wavelength(self,wavelength):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:START {wavelength}\n')
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],f'SOUR:WAVE:START {wavelength}\n',self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
         
     def change_end_scan_wavelength(self,wavelength):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:STOP {wavelength}\n')
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],f'SOUR:WAVE:STOP {wavelength}\n',self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
    
     def change_velocity_wavelength_change_forward(self,velocity):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:SLEW:FORWARD {velocity}\n')
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],f'SOUR:WAVE:SLEW:FORW {velocity}\n',self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
         
     def change_velocity_wavelength_change_reverse(self,velocity):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:SLEW:RETURN {velocity}\n')
+        self.buffer.Clear()
+        argument = f'SOURWAVE:SLEW:RET {velocity}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
         
     def change_number_scans(self,scans):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:WAVELENGTH:DESSCANS {scans}\n')
+        self.buffer.Clear()
+        argument = f'SOUR:WAVE:DESSCANS {scans}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
 
     def change_mode_laser_power(self,state):
-        self._newport_devices.Write(self._ID_list[0],f'SOURCE:CPOWER {state}\n')
+        self.buffer.Clear()
+        argument = f'SOUR:CPOW {state}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
         
     def start_scan(self):
-        self._newport_devices.Write(self._ID_list[0],f'OUTPUT:SCAN:START\n')
+        if self.check_lambda_track():
+            self.buffer.Clear()
+            argument = f'OUTP:SCAN:START\n'
+            self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+            string = self.buffer.ToString()
+            if string != "OK":
+                print(string)
 
     def end_scan(self):
-        self._newport_devices.Write(self._ID_list[0],f'OUTPUT:SCAN:STOP\n')        
+        self.buffer.Clear()
+        argument = f'OUTP:SCAN:STOP\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
 
     def close_devices(self):
         self._newport_devices.CloseDevices()
         time.sleep(1)
 
     def get_error_string(self):
-        string = StringBuilder(64)
-        self._newport_devices.Query(self._ID_list[0],'ERRSTR?\n',string)
-        string = string.ToString()
+        self.buffer.Clear()
+        argument = 'ERRSTR?\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
         print(string)
-
+        
+    def set_control_remote_mode(self,state):
+        self.buffer.Clear()
+        argument = f'SYST:MCON {state}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
+        
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
     wavelength = 765.10
     settingChange = -1
+    laser.set_control_remote_mode("REM")
     while settingChange != 20:
         settingChange = int(input("What would you like to do to the laser? \n 1: Turn On \n 2: Turn Off \n 3: Start Scan \n 4: Print Wavelength \n 5: Change Wavelength\n 6: Check Operation Complete\n 7: Get Wavelength \n 8: Change Number of Scans\n"))
         if settingChange == 1:
@@ -181,14 +282,21 @@ if __name__ == '__main__':
         elif settingChange == 4:
             laser.change_state_lambda_track(1)
         elif settingChange == 5:
+            if not laser.check_lambda_track():
+                laser.change_state_lambda_track_on()
+                time.sleep(1)
             laser.change_wavelength(wavelength)
-            wavelength += 0.01
+            if wavelength > 780:
+                wavelength -= 1
+            else:
+                wavelength += 1
             time.sleep(1)
         elif settingChange ==6:
             laser.operation_completed()
         elif settingChange == 7:
-            value = laser.get_wavelength()
-            print(value)
+            if laser.status_byte():
+                value = laser.get_wavelength()
+                print(value)
         elif settingChange == 8:
             laser.change_number_scans(10)
         elif settingChange == 9:
@@ -197,4 +305,9 @@ if __name__ == '__main__':
             laser.change_velocity_wavelength_change_reverse(0.2)
         elif settingChange == 10:
             laser.get_error_string()
+        elif settingChange == 11:
+            laser.change_state_lambda_track_on()
+        elif settingChange == 12:
+            laser.change_state_lambda_track_off()
+    laser.set_control_remote_mode("LOC")
     laser.close_devices()
