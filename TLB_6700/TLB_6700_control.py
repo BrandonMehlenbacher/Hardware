@@ -100,6 +100,17 @@ class TLB_6700_controller(object):
         self._newport_devices.Query(self._ID_list[0],f'OUTP:STAT {state}\n',self.buffer)
         string = self.buffer.ToString()
         
+    def get_output_state_laser(self):
+        #if state is 1 the laser will be turned on if it is 0 the laser will be turned off
+        argument = f'OUTP:STAT?\n'
+        self.buffer.Clear()
+        self._newport_devices.Query(self._ID_list[0],f'OUTP:STAT?\n',self.buffer)
+        string = self.buffer.ToString()
+        if string == "0":
+            return False
+        else:
+            return True
+        
     def get_wavelength(self):
         argument = 'SENS:WAVE?\n'
         self.buffer.Clear()
@@ -185,6 +196,14 @@ class TLB_6700_controller(object):
         if string != "OK":
             print(string)
 
+    def change_laser_current(self,power):
+        self.buffer.Clear()
+        argument = f'SOUR:CURR:DIOD {power}\n'
+        self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
+        string = self.buffer.ToString()
+        if string != "OK":
+            print(string)
+    
     def change_start_scan_wavelength(self,wavelength):
         self.buffer.Clear()
         self._newport_devices.Query(self._ID_list[0],f'SOUR:WAVE:START {wavelength}\n',self.buffer)
@@ -309,5 +328,7 @@ if __name__ == '__main__':
             laser.change_state_lambda_track_on()
         elif settingChange == 12:
             laser.change_state_lambda_track_off()
+        elif settingChange == 13:
+            laser.change_mode_laser_power(1)
     laser.set_control_remote_mode("LOC")
     laser.close_devices()
