@@ -409,12 +409,14 @@ class Ui_CavityLengthScan(object):
         # I am thinking of ways of improving this in the future but for now we are stuck, my idea is to do a query of all the instruments to determine what they are
         # and then match them to an instrument that we desire by using regular expressions, not totally optimal but better than current approach as we can only currently
         # use the exact rigol we currently have
+        
         self._rm = visa.ResourceManager()
         try:
             self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
         except visa.errors.VisaIOError:
             print("Make sure the function generator is turned on")
             sys.exit()
+        self.laser = None
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.connect_to_laser()
         self.start.setEnabled(True)
@@ -423,12 +425,14 @@ class Ui_CavityLengthScan(object):
         self._apd = None
         self._active = False
         self._values = None
-        self.laser = None
+
         #for timed channel
         self.timedList = []
         self.timedValues = []
         self.currentTime = 0
-        
+        self.wavelengthList = []
+        self.currentScan = 1
+        self.wavelengthScan = False
         
         #self.frequency.valueChanged.connect(self.change_value)
         self.start.clicked.connect(self.start_acq)
@@ -452,6 +456,8 @@ class Ui_CavityLengthScan(object):
         self.stopWavelengthScan.clicked.connect(self.stop_scan)
         self.setStartWavelengthScan.valueChanged.connect(self.change_start_scan_wavelength)
         self.setEndWavelengthScan.valueChanged.connect(self.change_end_scan_wavelength)
+        self.setCurrentPower.valueChanged.connect(self.change_laser_power_or_current)
+        self.powerOrCurrent.stateChanged.connect(self.switch_between_power_current)
         
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
@@ -592,12 +598,33 @@ class Ui_CavityLengthScan(object):
         self._values = self._apd.read_values()
         self._apd.stop_acquisition()
         self._apd.start_acquisition()
+
         if self.timedOrContinuous.isChecked():
-            self.currentTime += 1/self.frequency.value()
-            self.timedList.append(self.currentTime)
+            if not self.wavelengthScan:
+                self.currentTime += 1/self.frequency.value()
+                self.timedList.append(self.currentTime)
+            else:
+                self.timedList.append(self.laser.get_wavelength())
+                self.displayWavelength.display(self.laser.get_wavelength())
             self.timedValues.append(sum(self._values)/len(self._values))
             self.apd_graph.plot(self.timedList,self.timedValues)
-            if self.currentTime >= self.lengthOfMeasurement.value():
+            if self.wavelengthScan:
+                
+                if self.laser.get_actual_number_scans() == self.numberOfScans.value():
+                    #self.stop_scan()
+                    self.save_values()
+                    self.timedOrContinuous.setChecked(False)
+                    self.timedOrContinuous.setEnabled(True)
+                    self.timedList = []
+                    self.timedValues = []
+                    self.currentScan=1
+                elif self.currentScan == self.laser.get_actual_number_scans():
+                    self.save_values()
+                    self.timedList = []
+                    self.timedValues = []
+                    self.currentScan+=1
+
+            elif self.currentTime >= self.lengthOfMeasurement.value():
                 self.save_values()
                 self.timedOrContinuous.setChecked(False)
                 self.timedList = []
@@ -607,6 +634,7 @@ class Ui_CavityLengthScan(object):
             self.timedList = []
             self.timedValues = []
             self.currentTime = 0
+            
     def save_values(self):
         self._traceNum+=1;
         stopped = False
@@ -632,6 +660,7 @@ class Ui_CavityLengthScan(object):
         np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
+            
     def func_generation(self):
         self.saveNewValues()
         if self.funcGenSwitch.isChecked():
@@ -642,6 +671,7 @@ class Ui_CavityLengthScan(object):
             self._func_gen.write_many(['OUTP ON'])
         else:
             self._func_gen.write_many(['OUTP OFF'])
+            
     def saveNewValues(self):
         listValues = [self.frequency.value(),
                       self.minVoltage.value(),
@@ -681,10 +711,34 @@ class Ui_CavityLengthScan(object):
     def connect_to_laser(self):
         if self.controlLaser.isChecked():
             self.laser = TLB_6700_controller("SN41044")
+            self.displayWavelength.display(self.laser.get_wavelength())
+            self.switch_between_power_current()
         else:
             if self.laser != None:
                 self.laser.close_devices()
 
+    def switch_between_power_current(self):
+        if self.laser.get_output_state_laser():
+            self.laser.output_state_laser(0)
+            self.laserStatus.setChecked(False)
+        if self.powerOrCurrent.isChecked():
+            self.laser.change_mode_laser_power(1)
+            self.displayPower.display(self.laser.get_power_diode())
+            self.displayCurrent.display(0)
+        else:
+            self.laser.change_mode_laser_power(0)
+            self.displayCurrent.display(self.laser.get_current_diode())
+            self.displayPower.display(0)
+            
+    def change_laser_power_or_current(self):
+        if self.powerOrCurrent.isChecked():
+            self.laser.change_laser_power(self.setCurrentPower.value())
+            time.sleep(2)
+            self.displayPower.display(self.laser.get_power_diode())
+        else:
+            self.laser.change_laser_current(self.setCurrentPower.value())
+            self.displayCurrent.display(self.laser.get_current_diode())
+    
     def change_laser_state(self):
         if self.laserStatus.isChecked():
             self.laser.output_state_laser(1)
@@ -695,10 +749,12 @@ class Ui_CavityLengthScan(object):
 
     def change_laser_wavelength(self):
         #if self.laser.operation_completed():
-        self.laser.change_state_lambda_track(1)
-        self.laser.change_wavelength(self.setWavelength.value())
-        self.displayWavelength.display(self.laser.get_wavelength())
-        time.sleep(0.1)
+        if not self.wavelengthScan:
+            if not self.laser.check_lambda_track():
+                self.laser.change_state_lambda_track_on()
+            self.laser.change_wavelength(self.setWavelength.value())
+            self.displayWavelength.display(self.laser.get_wavelength())
+            time.sleep(0.1)
         
     def change_number_scans(self):
         self.laser.change_number_scans(self.numberOfScans.value())
@@ -708,17 +764,34 @@ class Ui_CavityLengthScan(object):
         self.laser.change_start_scan_wavelength(self.setStartWavelengthScan.value())
         time.sleep(0.1)
 
-    def change_end_scan_wavelength(self):
-        self.laser.change_start_scan_wavelength(self.setEndWavelengthScan.value())
-        time.sleep(0.1)
+    #def change_velocity_scan(self):
+      #  self.laser.change_start_scan_wavelength(self.setEndWavelengthScan.value())
+        #time.sleep(0.1)
 
+    def change_end_scan_wavelength(self):
+        self.laser.change_velocity_wavelength_change_forward(self.setEndWavelengthScan.value())
+        self.laser.change_velocity_wavelength_change_reverse(self.setEndWavelengthScan.value())
+        time.sleep(0.1)
+        
     def start_scan(self):
-        self.laser.change_state_lambda_track(1)
+        self.timedList = []
+        self.timedValues = []
+        self._timer.setInterval(300)
+        self.laser.change_state_lambda_track_on()
+        self.timedOrContinuous.setChecked(True)
+        self.timedOrContinuous.setEnabled(False)
+        self.wavelengthScan = True
         self.laser.start_scan()
 
     def stop_scan(self):
+        self.timedList = []
+        self.timedValues = []
+        self.currentScan=1
+        time = (1/self.frequency.value())*1000
+        self._timer.setInterval(time)
+        self.timedOrContinuous.setEnabled(True)
+        self.wavelengthScan = False
         self.laser.end_scan()
-        #self.displayWavelength.display(self.laser.get_wavelength())
         
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
