@@ -227,7 +227,7 @@ class TLB_6700_controller(object):
         
     def change_velocity_wavelength_change_reverse(self,velocity):
         self.buffer.Clear()
-        argument = f'SOURWAVE:SLEW:RET {velocity}\n'
+        argument = f'SOUR:WAVE:SLEW:RET {velocity}\n'
         self._newport_devices.Query(self._ID_list[0],argument,self.buffer)
         string = self.buffer.ToString()
         if string != "OK":
@@ -317,7 +317,7 @@ if __name__ == '__main__':
                 value = laser.get_wavelength()
                 print(value)
         elif settingChange == 8:
-            laser.change_number_scans(10)
+            laser.change_number_scans(4)
         elif settingChange == 9:
             laser.change_velocity_wavelength_change_forward(0.2)
             time.sleep(0.1)
