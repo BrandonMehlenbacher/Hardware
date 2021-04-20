@@ -458,6 +458,8 @@ class Ui_CavityLengthScan(object):
         self.setEndWavelengthScan.valueChanged.connect(self.change_end_scan_wavelength)
         self.setCurrentPower.valueChanged.connect(self.change_laser_power_or_current)
         self.powerOrCurrent.stateChanged.connect(self.switch_between_power_current)
+        self.numberOfScans.valueChanged.connect(self.change_number_scans)
+        self.scanSpeed.valueChanged.connect(self.change_velocity_scan)
         
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
@@ -764,13 +766,13 @@ class Ui_CavityLengthScan(object):
         self.laser.change_start_scan_wavelength(self.setStartWavelengthScan.value())
         time.sleep(0.1)
 
-    #def change_velocity_scan(self):
-      #  self.laser.change_start_scan_wavelength(self.setEndWavelengthScan.value())
-        #time.sleep(0.1)
-
+    def change_velocity_scan(self):
+        self.laser.change_velocity_wavelength_change_forward(self.scanSpeed.value())
+        self.laser.change_velocity_wavelength_change_reverse(self.scanSpeed.value())
+        time.sleep(0.1)
+        
     def change_end_scan_wavelength(self):
-        self.laser.change_velocity_wavelength_change_forward(self.setEndWavelengthScan.value())
-        self.laser.change_velocity_wavelength_change_reverse(self.setEndWavelengthScan.value())
+        self.laser.change_end_scan_wavelength(self.setEndWavelengthScan.value())
         time.sleep(0.1)
         
     def start_scan(self):
