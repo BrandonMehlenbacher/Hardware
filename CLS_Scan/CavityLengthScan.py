@@ -546,7 +546,7 @@ class Ui_CavityLengthScan(object):
     def start_acq(self):
         print(self.daqList.currentItem().text())
         #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
-        #self.output = signalOutput("Dev1/ao0", 1000000,100)
+        self.output = signalOutput("Dev1/ao0", 1000000,100)
         #self.worker =  workerOutput(self.output)
         #self.worker.start()
         self._timer = QTimer()
