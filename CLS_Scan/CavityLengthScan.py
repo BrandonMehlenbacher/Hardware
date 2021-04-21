@@ -414,8 +414,7 @@ class Ui_CavityLengthScan(object):
         try:
             self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
         except visa.errors.VisaIOError:
-            print("Make sure the function generator is turned on")
-            sys.exit()
+            raise ValueError("Make sure the function generator is turned on")
         self.laser = None
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.connect_to_laser()
