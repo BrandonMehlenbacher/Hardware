@@ -229,7 +229,7 @@ class Ui_apdMonitor(object):
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
         ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"Brandon Mehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
-        ___qlistwidgetitem10.setText(QCoreApplication.translate("apdMonitor", u"Lisa-Maria", None));
+        ___qlistwidgetitem10.setText(QCoreApplication.translate("apdMonitor", u"Lisa-Maria Needham", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
         ___qlistwidgetitem11.setText(QCoreApplication.translate("apdMonitor", u"Beau", None));
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
@@ -271,7 +271,7 @@ class Ui_apdMonitor(object):
             self._apd.stop_acquisition()
             self._apd.close_daq()
             self._apd = None
-            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),)
+            self._apd = APD_Reader(self.daqList.currentItem().text(),int(1000000/(self.frequency.value()/2)),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous=False)
             self._apd.start_acquisition()
             time = (1/self.frequency.value())*1000
             self._timer.start(time)
@@ -280,6 +280,8 @@ class Ui_apdMonitor(object):
     def graph_values(self):
         self.apd_graph.clear()
         self._values = self._apd.read_values()
+        self._apd.stop_acquisition()
+        self._apd.start_acquisition()
         self.apd_graph.plot(self._values)
     def save_values(self):
         self._traceNum+=1;
@@ -293,7 +295,7 @@ class Ui_apdMonitor(object):
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
-            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"resonance_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
