@@ -20,7 +20,7 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-from signalOutput import signalOutput, workerOutput
+#from signalOutput import signalOutput, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
 from TLB_6700.TLB_6700_control import TLB_6700_controller
 
@@ -260,7 +260,7 @@ class Ui_CavityLengthScan(object):
         self.controlLaser.setEnabled(True)
         self.controlLaser.setGeometry(QRect(910, 70, 121, 31))
         self.controlLaser.setFont(font)
-        self.controlLaser.setChecked(True)
+        self.controlLaser.setChecked(False)
         self.laserStatus = QCheckBox(self.centralwidget)
         self.laserStatus.setObjectName(u"laserStatus")
         self.laserStatus.setGeometry(QRect(910, 110, 101, 16))
@@ -302,6 +302,7 @@ class Ui_CavityLengthScan(object):
         self.setWavelength.setMinimum(765.000000000000000)
         self.setWavelength.setMaximum(781.000000000000000)
         self.setWavelength.setSingleStep(0.010000000000000)
+        self.setWavelength.setKeyboardTracking(False)
         self.labelSetWavelength = QLabel(self.centralwidget)
         self.labelSetWavelength.setObjectName(u"labelSetWavelength")
         self.labelSetWavelength.setGeometry(QRect(910, 180, 161, 20))
@@ -311,6 +312,7 @@ class Ui_CavityLengthScan(object):
         self.setCurrentPower.setGeometry(QRect(1080, 270, 141, 31))
         self.setCurrentPower.setFont(font)
         self.setCurrentPower.setMaximum(200.000000000000000)
+        self.setCurrentPower.setKeyboardTracking(False)
         self.labelSetCurrentPower = QLabel(self.centralwidget)
         self.labelSetCurrentPower.setObjectName(u"labelSetCurrentPower")
         self.labelSetCurrentPower.setGeometry(QRect(1080, 240, 211, 20))
@@ -326,6 +328,7 @@ class Ui_CavityLengthScan(object):
         self.setStartWavelengthScan.setFont(font)
         self.setStartWavelengthScan.setMinimum(765.000000000000000)
         self.setStartWavelengthScan.setMaximum(780.990000000000009)
+        self.setStartWavelengthScan.setKeyboardTracking(False)
         self.setEndWavelengthScan = QDoubleSpinBox(self.centralwidget)
         self.setEndWavelengthScan.setObjectName(u"endWavelengthScan")
         self.setEndWavelengthScan.setGeometry(QRect(1210, 150, 81, 22))
@@ -333,6 +336,7 @@ class Ui_CavityLengthScan(object):
         self.setEndWavelengthScan.setMinimum(765.009999999999991)
         self.setEndWavelengthScan.setMaximum(781.000000000000000)
         self.setEndWavelengthScan.setValue(781.00)
+        self.setEndWavelengthScan.setKeyboardTracking(False)
         self.scanSpeed = QDoubleSpinBox(self.centralwidget)
         self.scanSpeed.setObjectName(u"scanSpeed")
         self.scanSpeed.setGeometry(QRect(1440, 150, 81, 22))
@@ -341,6 +345,7 @@ class Ui_CavityLengthScan(object):
         self.scanSpeed.setMaximum(8.000000000000000)
         self.scanSpeed.setSingleStep(0.010000000000000)
         self.scanSpeed.setValue(0.100000000000000)
+        self.scanSpeed.setKeyboardTracking(False)
         self.labelStartWavelength = QLabel(self.centralwidget)
         self.labelStartWavelength.setObjectName(u"labelStartWavelength")
         self.labelStartWavelength.setGeometry(QRect(1030, 120, 171, 21))
@@ -418,7 +423,6 @@ class Ui_CavityLengthScan(object):
             sys.exit()
         self.laser = None
         self._func_gen = FunctionGenerator(self._resource,"SOUR1")
-        self.connect_to_laser()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None

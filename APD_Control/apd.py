@@ -59,6 +59,7 @@ class Ui_apdMonitor(object):
         self.frequency.setFont(font)
         self.frequency.setMaximum(10000.000000000000000)
         self.frequency.setSingleStep(0.100000000000000)
+        self.frequency.setKeyboardTracking(False)
         
         self.labelFrequency = QLabel(self.centralwidget)
         self.labelFrequency.setObjectName(u"labelFrequency")
@@ -85,6 +86,7 @@ class Ui_apdMonitor(object):
         self.minVoltage.setObjectName(u"minVoltage")
         self.minVoltage.setGeometry(QRect(550, 410, 131, 21))
         self.minVoltage.setFont(font)
+        self.minVoltage.setKeyboardTracking(False)
         self.labelMinVoltage = QLabel(self.centralwidget)
         self.labelMinVoltage.setObjectName(u"labelMinVoltage")
         self.labelMinVoltage.setGeometry(QRect(550, 380, 161, 31))
@@ -97,6 +99,7 @@ class Ui_apdMonitor(object):
         self.maxVoltage.setObjectName(u"maxVoltage")
         self.maxVoltage.setGeometry(QRect(550, 360, 131, 21))
         self.maxVoltage.setFont(font)
+        self.maxVoltage.setKeyboardTracking(False)
         self.cavityName = QPlainTextEdit(self.centralwidget)
         self.cavityName.setObjectName(u"cavityName")
         self.cavityName.setGeometry(QRect(220, 130, 291, 41))
@@ -227,7 +230,7 @@ class Ui_apdMonitor(object):
         __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
         self.whoAreYou.setSortingEnabled(False)
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
-        ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"Brandon Mehlenbacher", None));
+        ___qlistwidgetitem9.setText(QCoreApplication.translate("apdMonitor", u"BrandonMehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
         ___qlistwidgetitem10.setText(QCoreApplication.translate("apdMonitor", u"Lisa-Maria Needham", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
