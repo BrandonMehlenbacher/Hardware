@@ -20,7 +20,7 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-from signalOutput import signalOutput, workerOutput
+from signalOutput import signalOutputDAQ#, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
 from TLB_6700.TLB_6700_control import TLB_6700_controller
 
@@ -167,6 +167,7 @@ class Ui_CavityLengthScan(object):
         self.amplitude.setObjectName(u"amplitude")
         self.amplitude.setGeometry(QRect(740, 370, 131, 21))
         self.amplitude.setFont(font)
+        self.amplitude.setKeyboardTracking(False)
         self.labelAPDControls = QLabel(self.centralwidget)
         self.labelAPDControls.setObjectName(u"labelAPDControls")
         self.labelAPDControls.setGeometry(QRect(530, 310, 101, 31))
@@ -183,6 +184,7 @@ class Ui_CavityLengthScan(object):
         self.funcGenFrequency.setObjectName(u"funcGenFrequency")
         self.funcGenFrequency.setGeometry(QRect(740, 420, 131, 21))
         self.funcGenFrequency.setFont(font)
+        self.funcGenFrequency.setKeyboardTracking(False)
         self.labelFuncGenFrequency = QLabel(self.centralwidget)
         self.labelFuncGenFrequency.setObjectName(u"labelFuncGenFrequency")
         self.labelFuncGenFrequency.setGeometry(QRect(740, 390, 101, 31))
@@ -193,6 +195,7 @@ class Ui_CavityLengthScan(object):
         self.offset.setFont(font)
         self.offset.setDecimals(4)
         self.offset.setSingleStep(0.001000000)
+        self.offset.setKeyboardTracking(False)
         #self.offset.setValue(0.2000)
         self.labelOffset = QLabel(self.centralwidget)
         self.labelOffset.setObjectName(u"labelOffset")
@@ -409,15 +412,16 @@ class Ui_CavityLengthScan(object):
         # I am thinking of ways of improving this in the future but for now we are stuck, my idea is to do a query of all the instruments to determine what they are
         # and then match them to an instrument that we desire by using regular expressions, not totally optimal but better than current approach as we can only currently
         # use the exact rigol we currently have
-        
-        self._rm = visa.ResourceManager()
-        try:
-            self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        except visa.errors.VisaIOError:
-            raise ValueError("Make sure the function generator is turned on")
+        self.daqOutput = True #I will add a check box for this later if I have to
+        if not self.daqOutput:
+            self._rm = visa.ResourceManager()
+            try:
+                self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+                self._func_gen = FunctionGenerator(self._resource,"SOUR1")
+            except visa.errors.VisaIOError:
+                raise ValueError("Make sure the function generator is turned on")
         self.laser = None
-        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
-        self.connect_to_laser()
+        #self.connect_to_laser()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None
@@ -546,13 +550,14 @@ class Ui_CavityLengthScan(object):
     def start_acq(self):
         print(self.daqList.currentItem().text())
         #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
-        self.output = signalOutput("Dev1/ao0", 1000000,100)
+        self.output = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
         #self.worker =  workerOutput(self.output)
         #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
         self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
         self._apd.start_acquisition()
+        self.output.start_acq()
         self._timer.start(time)
         self._timer.timeout.connect(self.graph_values)
         self.start.setEnabled(False)
@@ -562,10 +567,15 @@ class Ui_CavityLengthScan(object):
     def stop_acq(self):
         #self.worker.terminateLoop()
         #self.worker.quit()
-        self._apd.stop_acquisition()
-        self._apd.close_daq()
-        self._apd = None
         self._timer.stop()
+        self._apd.stop_acquisition()
+        self.output.stop_acq()
+        self._apd.close_daq()
+        self.output.close_daq()
+        
+        self._apd = None
+        self.output = None
+        #self._timer.stop()
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._active = False
@@ -664,14 +674,20 @@ class Ui_CavityLengthScan(object):
             
     def func_generation(self):
         self.saveNewValues()
-        if self.funcGenSwitch.isChecked():
-            if self.scanSwitch.isChecked():
-                self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
+        if not self.daqOutput:
+            if self.funcGenSwitch.isChecked():
+                if self.scanSwitch.isChecked():
+                    self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
+                else:
+                    self._func_gen.write_many(['FUNC:SHAP DC','VOLT:UNIT VPP',f"VOLT:OFFS {self.offset.value()}"])
+                self._func_gen.write_many(['OUTP ON'])
             else:
-                self._func_gen.write_many(['FUNC:SHAP DC','VOLT:UNIT VPP',f"VOLT:OFFS {self.offset.value()}"])
-            self._func_gen.write_many(['OUTP ON'])
+                self._func_gen.write_many(['OUTP OFF'])
         else:
-            self._func_gen.write_many(['OUTP OFF'])
+            self.output.stop_acq()
+            self.output.close_daq()
+            self.output = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+            self.output.start_acq()
             
     def saveNewValues(self):
         listValues = [self.frequency.value(),
