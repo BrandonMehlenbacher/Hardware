@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>FiberCharacterization</class>
+ <widget class="QMainWindow" name="FiberCharacterization">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>926</width>
-    <height>703</height>
+    <width>942</width>
+    <height>753</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="QPushButton" name="capture">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>20</x>
       <y>270</y>
-      <width>131</width>
+      <width>191</width>
       <height>41</height>
      </rect>
     </property>
@@ -35,9 +35,9 @@
    <widget class="QDoubleSpinBox" name="stepSize">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>20</x>
       <y>360</y>
-      <width>121</width>
+      <width>191</width>
       <height>31</height>
      </rect>
     </property>
@@ -56,7 +56,7 @@
    <widget class="QLabel" name="labelStepSize">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>20</x>
       <y>330</y>
       <width>111</width>
       <height>21</height>
@@ -71,22 +71,22 @@
      <string>Step Size</string>
     </property>
    </widget>
-   <widget class="QGraphicsView" name="graphicsView">
+   <widget class="QGraphicsView" name="cameraImage">
     <property name="geometry">
      <rect>
-      <x>380</x>
+      <x>260</x>
       <y>160</y>
-      <width>341</width>
-      <height>241</height>
+      <width>601</width>
+      <height>471</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="filepath">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>90</y>
-      <width>421</width>
+      <x>20</x>
+      <y>70</y>
+      <width>841</width>
       <height>31</height>
      </rect>
     </property>
@@ -94,8 +94,8 @@
    <widget class="QLabel" name="labelFilepath">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>60</y>
+      <x>20</x>
+      <y>40</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -112,8 +112,8 @@
    <widget class="QListWidget" name="users">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>170</y>
+      <x>20</x>
+      <y>160</y>
       <width>191</width>
       <height>31</height>
      </rect>
@@ -150,8 +150,8 @@
    <widget class="QLabel" name="labelUsers">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>140</y>
+      <x>20</x>
+      <y>130</y>
       <width>55</width>
       <height>16</height>
      </rect>
@@ -165,12 +165,12 @@
      <string>Users</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="capture_2">
+   <widget class="QPushButton" name="live">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>20</x>
       <y>210</y>
-      <width>131</width>
+      <width>191</width>
       <height>41</height>
      </rect>
     </property>
@@ -183,13 +183,124 @@
      <string>Live</string>
     </property>
    </widget>
+   <widget class="QLabel" name="labelExposure">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>400</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Exposure Time (ms)</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="exposureTime">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>440</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="value">
+     <double>20.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lableAverageNumber">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>480</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Average Number</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="labelDelayTime">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>550</y>
+      <width>231</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Delay Time Between Frames (ms)</string>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="delayTime">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>600</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="maximum">
+     <double>10000.000000000000000</double>
+    </property>
+    <property name="value">
+     <double>1000.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="averageNumber">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>510</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>926</width>
+     <width>942</width>
      <height>26</height>
     </rect>
    </property>
