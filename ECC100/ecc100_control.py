@@ -4,7 +4,15 @@ from enum import Enum
 
 lib=oledll.LoadLibrary('C:/Program Files/Software_ECC100/Software_ECC100_1.6.8/ECC100_DLL/Win64/ecc.dll')
 
+    
+class EccInfo(Structure):
+    _fields_ = [('id',c_int32),('locked',c_bool)]
+
 class ECCControl:
+    """
+    Most of this work is based off of the instrumental-lib library implementation and I am just rewriting it so I do not have to use their package
+    Please check their project out, I use a lot of their modules and it is amazing https://github.com/mabuchilab/Instrumental
+    """
     def __init__(self):
         self.lib = lib
         num, info  = self.check()
@@ -69,14 +77,31 @@ class ECCControl:
     def move_enabled(self,axis):
         self.control_move(axis,enable=True,set=True)
 
-    def move_disable
+    def move_disable(self,axis):
         self.control_move(axis,enable=False,set=True)
-    #def initialize_actor(self,axis):
 
-class EccInfo(Structure):
-    _fields_ = [('id',c_int32),('locked',c_bool)]
+    def move_status(self,axis):
+        return self.control_move(axis)
 
+    def get_position(self,axis):
+        position = c_int32()
+        ret = self.lib.ECC_controlAmplitude(self.dev_handle,axis,byref(position))
+        self.handle_err(ret,func="get_position")
+        return position.value
 
+    def move_to(self,axis,target= None,set=False):
+        if target == None:
+            return
+        target = c_int32(target)
+        ret = self.lib.ECC_controlTargetRange(self.dev_handle,axis,byref(target),set)
+        self.handle_err(ret,func="move_to")
+        return target.value
+
+    def moving_status(self,axis):
+        moving = c_int32()
+        ret = self.lib.ECC_controlAmplitude(self.dev_handle,axis,byref(moving),set)
+        self.handle_err(ret,func="control_move")
+        return moving.value
 
 if __name__ == "__main__":
     ecc = ECCControl()
