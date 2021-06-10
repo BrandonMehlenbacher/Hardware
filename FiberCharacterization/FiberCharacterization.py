@@ -7,6 +7,14 @@
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
+import sys
+import warnings
+import time
+from datetime import date
+import os
+warnings.simplefilter("ignore")
+sys.path.append("C:/Users/bmehl/Desktop/Research_Programs/Hardware")
+
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
@@ -15,6 +23,7 @@ from instrumental import instrument, list_instruments
 import pyqtgraph as pg
 import numpy as np
 import matplotlib.pyplot as plt
+from ECC100.ecc100_control import ECC100Control
 
 class Ui_FiberCharacterization(object):
     def __init__(self):
@@ -22,7 +31,13 @@ class Ui_FiberCharacterization(object):
         self.camera = self.connect_to_camera(b'4103577042')
         self.timeBetweenFrames = 50
         self.live = False
-        self.filepath = r"\\marlin.chem.wisc.edu\groups\Goldsmith Group\X\dataBackup\Data\ELN_Data"
+        self.today = str(date.today())
+        self.parentPath = "//marlin.chem.wisc.edu/groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
+        self.axis = 1 # this is the axis needed for taking the pictures, can be changed if necessary
+        self.ecc = ECC100Control()
+        self.ecc.connect()
+        self.ecc.set_frequency(self.axis,100000)
+        self.ecc.set_amplitude(self.axis,30000)
     def setupUi(self, FiberCharacterization):
         if not FiberCharacterization.objectName():
             FiberCharacterization.setObjectName(u"FiberCharacterization")
@@ -43,7 +58,7 @@ class Ui_FiberCharacterization(object):
         self.stepSize.setValue(128.000000000000000)
         self.labelStepSize = QLabel(self.centralwidget)
         self.labelStepSize.setObjectName(u"labelStepSize")
-        self.labelStepSize.setGeometry(QRect(20, 330, 111, 21))
+        self.labelStepSize.setGeometry(QRect(20, 330, 151, 21))
         self.labelStepSize.setFont(font)
         self.cameraImage = pg.ImageView()
         self.cameraImage.setObjectName(u"cameraImage")
@@ -95,11 +110,45 @@ class Ui_FiberCharacterization(object):
         self.delayTime.setGeometry(QRect(20, 600, 191, 31))
         self.delayTime.setFont(font)
         self.delayTime.setMaximum(10000.000000000000000)
-        self.delayTime.setValue(1000.000000000000000)
+        self.delayTime.setValue(0.000000000000000)
         self.averageNumber = QSpinBox(self.centralwidget)
         self.averageNumber.setObjectName(u"averageNumber")
         self.averageNumber.setGeometry(QRect(20, 510, 191, 31))
         self.averageNumber.setFont(font)
+        self.averageNumber.setValue(3)
+        self.moveBy = QDoubleSpinBox(self.centralwidget)
+        self.moveBy.setObjectName(u"moveTo")
+        self.moveBy.setGeometry(QRect(20, 660, 191, 31))
+        self.moveBy.setFont(font)
+        self.moveBy.setMinimum(-12500.000000000000000)
+        self.moveBy.setMaximum(25000.000000000000000)
+        self.moveBy.setSingleStep(0.001000000000000)
+        self.moveBy.setValue(0.000000000000000)
+        self.moveBy.setKeyboardTracking(False)
+        self.labelMoveTo = QLabel(self.centralwidget)
+        self.labelMoveTo.setObjectName(u"labelMoveTo")
+        self.labelMoveTo.setGeometry(QRect(20, 640, 141, 16))
+        self.labelMoveTo.setFont(font)
+        self.fiberNumber = QSpinBox(self.centralwidget)
+        self.fiberNumber.setObjectName(u"fiberNumber")
+        self.fiberNumber.setGeometry(QRect(260, 160, 191, 31))
+        self.fiberNumber.setFont(font)
+        self.labelFiberNumber = QLabel(self.centralwidget)
+        self.labelFiberNumber.setObjectName(u"labelFiberNumber")
+        self.labelFiberNumber.setGeometry(QRect(260, 130, 161, 16))
+        self.labelFiberNumber.setFont(font)
+        self.folderName = QTextEdit(self.centralwidget)
+        self.folderName.setObjectName(u"folderName")
+        self.folderName.setGeometry(QRect(480, 160, 191, 41))
+        self.background = QCheckBox(self.centralwidget)
+        self.background.setObjectName(u"background")
+        self.background.setGeometry(QRect(680, 170, 251, 31))
+        self.background.setFont(font)
+        self.background.setChecked(False)
+        self.labelFolderName = QLabel(self.centralwidget)
+        self.labelFolderName.setObjectName(u"labelFolderName")
+        self.labelFolderName.setGeometry(QRect(480, 130, 141, 16))
+        self.labelFolderName.setFont(font)
         FiberCharacterization.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(FiberCharacterization)
         self.menubar.setObjectName(u"menubar")
@@ -113,23 +162,26 @@ class Ui_FiberCharacterization(object):
 
         self.users.setCurrentRow(0)
 
+        self.filepath = self.parentPath+'/'+self.users.currentItem().text()+'/'+self.folderName.toPlainText()+'/'+self.today
 
         QMetaObject.connectSlotsByName(FiberCharacterization)
         self.live.clicked.connect(self.start_video)
-        self.capture.clicked.connect(self.grab_image)
+        self.capture.clicked.connect(self.capture_image)
+        self.moveBy.valueChanged.connect(self.move_attocube)
+        self.users.currentItemChanged.connect(self.change_filepath)
         self.timer = QTimer()
     # setupUi
 
     def retranslateUi(self, FiberCharacterization):
         FiberCharacterization.setWindowTitle(QCoreApplication.translate("FiberCharacterization", u"MainWindow", None))
         self.capture.setText(QCoreApplication.translate("FiberCharacterization", u"Capture", None))
-        self.labelStepSize.setText(QCoreApplication.translate("FiberCharacterization", u"Step Size", None))
+        self.labelStepSize.setText(QCoreApplication.translate("FiberCharacterization", u"Step Size (nm)", None))
         self.labelFilepath.setText(QCoreApplication.translate("FiberCharacterization", u"Filepath", None))
 
         __sortingEnabled = self.users.isSortingEnabled()
         self.users.setSortingEnabled(False)
         ___qlistwidgetitem = self.users.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("FiberCharacterization", u"Beau Schweizer", None));
+        ___qlistwidgetitem.setText(QCoreApplication.translate("FiberCharacterization", u"Beau Schweitzer", None));
         ___qlistwidgetitem1 = self.users.item(1)
         ___qlistwidgetitem1.setText(QCoreApplication.translate("FiberCharacterization", u"Alex Fairhall", None));
         ___qlistwidgetitem2 = self.users.item(2)
@@ -145,31 +197,65 @@ class Ui_FiberCharacterization(object):
         self.labelExposure.setText(QCoreApplication.translate("FiberCharacterization", u"Exposure Time (ms)", None))
         self.lableAverageNumber.setText(QCoreApplication.translate("FiberCharacterization", u"Average Number", None))
         self.labelDelayTime.setText(QCoreApplication.translate("FiberCharacterization", u"Delay Time Between Frames (ms)", None))
+        self.labelMoveTo.setText(QCoreApplication.translate("FiberCharacterization",u"Move By (um)",None))
+        self.labelFiberNumber.setText(QCoreApplication.translate("FiberCharacterization", u"Fiber Number", None))
+        self.folderName.setText(QCoreApplication.translate("FiberCharacterization", u"FiberAblation", None))
+        self.background.setText(QCoreApplication.translate("FiberCharacterization", u"Background? (T/F)", None))
+        self.labelFolderName.setText(QCoreApplication.translate("FiberCharacterization", u"Folder Name", None))
     def connect_to_camera(self, serial):
         camera = None
         for x in range(len(self.instrumentList)):
                 # this is the serial number for the camera and needs to be changed if camera is switched
                 if self.instrumentList[x]['serial'] == serial:
                     camera = instrument(self.instrumentList[x])
-                    print("success")
                     break
         #camera.start_live_video()
         return camera
+
+    def change_filepath(self):
+        self.filepath = self.parentPath+'/'+self.users.currentItem().text()+'/'+self.folderName.toPlainText()+'/'+self.today
+    
     def start_video(self):
         self.timer.start(self.timeBetweenFrames)
         self.camera.start_live_video()
         self.live = True
         self.timer.timeout.connect(self.view_camera)
+        
     def view_camera(self):
         self.cameraImage.setImage(self.camera.latest_frame())
+        
     def grab_image(self):
         self.image = self.camera.latest_frame()
         self.image = self.image.astype(np.uint8)
-        self.save_image(f"filename")
-    def save_image(self,filename):
-        plt.imsave(filename+".jpeg",self.image)
+        return self.image
+        
+    def save_image(self, data, filename):
+        if not os.path.isdir(self.filepath):
+            os.makedirs(self.filepath)
+        plt.imsave(self.filepath+"/"+filename+".tiff",self.image)
+        time.sleep(0.1)
+        
     def change_exposure(self,time):
         self.camera._set_exposure(time)
+
+    def capture_image(self):
+        if self.background.isChecked():
+            self.save_image(self.grab_image(),f"fiber{self.fiberNumber.value()}_interference_bg")
+        elif self.live:
+            for i in range(5): # we use 5 images for our averaging
+                image_array = np.zeros(shape=(1024,1280,int(self.averageNumber.value())))
+                for j in range(int(self.averageNumber.value())):
+                    image_array[:,:,j] = self.grab_image()
+                    time.sleep(self.delayTime.value()//1000)
+                for j in range(int(self.averageNumber.value())):
+                    self.save_image(image_array[:,:,j],f"fiber{self.fiberNumber.value()}_interference_{i}_{j}")
+                self.ecc.move_to(self.axis,int(self.stepSize.value()))
+        else:
+            print("Must have turned the live video on before trying to capture images")
+
+    def move_attocube(self):
+        value = int(self.moveBy.value()*1000)
+        self.ecc.move_to(self.axis,target=value)
     # retranslateUi
     
 if __name__ == "__main__":
@@ -180,4 +266,4 @@ if __name__ == "__main__":
     ui.setupUi(FiberCharacterization)
     FiberCharacterization.show()
     sys.exit(app.exec_())
-
+    ui.ecc.close()
