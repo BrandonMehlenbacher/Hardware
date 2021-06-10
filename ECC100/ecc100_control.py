@@ -58,8 +58,9 @@ class ECCControl:
         self.control_amplitude(axis,value,set=True)
 
     def control_frequency(self, axis,frequency = 0,set=False):
+        # this value is in mHz
         frequency = c_int32(int(frequency))
-        ret = self.lib.ECC_controlAmplitude(self.dev_handle,axis,byref(frequency),set)
+        ret = self.lib.ECC_controlFrequency(self.dev_handle,axis,byref(frequency),set)
         self.handle_err(ret,func="control_frequency ")
         return frequency.value
 
@@ -78,6 +79,12 @@ class ECCControl:
     def control_continuous_forward(self,axis,enable=False,set=False):
         enable = c_bool(enable)
         ret = self.lib.ECC_controlContinousFwd(self.dev_handle,axis,byref(enable),set)
+        self.handle_err(ret,func="control_move")
+        return bool(enable.value)
+
+    def control_continuous_backward(self,axis,enable=False,set=False):
+        enable = c_bool(enable)
+        ret = self.lib.ECC_controlContinousBkwd(self.dev_handle,axis,byref(enable),set)
         self.handle_err(ret,func="control_move")
         return bool(enable.value)
 
@@ -101,6 +108,12 @@ class ECCControl:
         ret = self.lib.ECC_controlTargetPosition(self.dev_handle,axis,byref(target),set)
         self.handle_err(ret,func="move_to")
         return target.value
+
+    def get_target(self,axis):
+        return self.move_target(axis)
+
+    def set_target(self,axis,target):
+        return self.move_target(axis,target, set=True)       
 
     def move_range(self,axis,target= None,set=False):
         if target == None:
@@ -139,20 +152,46 @@ class ECCControl:
         self.control_output(axis,enable=False,set=True)
 
     def wait_until_position(self,axis):
-        targetRange = 100#self.control_target_range(1)
-        position = self.get_position(1)
-        targetPosition = self.move_target(1)
+        targetRange = 1000#self.control_target_range(1)
+        position = self.get_position(axis)
+        targetPosition = self.get_target(axis)
+        print(position," position")
+        print(targetPosition," target")
         return abs(position-targetPosition)<=targetRange
+
+    def is_moving_forward(self,axis):
+        return self.control_continuous_forward(axis)
+
+    def is_moving_backward(self,axis):
+        return self.control_continuous_backward(axis)
+    
     def move_to(self,axis,target=None):
         if target == None:
-            raise ValueError("Must enter a value to move to a targetted position")
-        self.move_enabled_feedback(1)
-        self.control_continuous_forward(1,enable=True,set=True)
-        #self.control_target_range(1,10,set=True)
-        self.move_target(1,target,set=True)
-        self.enable_output(1)
-        while not self.wait_until_position(1):
-            time.sleep(0.050)
+            raise ValueError("Must enter a value to move to a targeted position")
+        self.move_enabled_feedback(axis)
+        #self.control_target_range(axis,set=True)
+        initialPosition = self.get_position(axis)
+        targetPosition = self.get_target(axis)
+        self.set_target(axis,target+initialPosition)
+        targetPosition = self.get_target(axis)
+        if self.wait_until_position(axis):
+            return
+        if initialPosition < targetPosition:
+            print("forward it is")
+            self.control_continuous_forward(1,enable=True,set=True)
+        elif initialPosition > targetPosition:
+            print("backward it is")
+            self.control_continuous_backward(1,enable=True,set=True)
+        self.enable_output(axis)
+        while not self.wait_until_position(axis):
+            pass
+        self.stop_stepping(axis)
+
+    def stop_stepping(self,axis):
+        if self.is_moving_forward(axis):
+            self.control_continuous_forward(1,enable=False,set=True)
+        if self.is_moving_backward(axis):
+            self.control_continuous_backward(1,enable=False,set=True)
     
     def close(self):
         ret = self.lib.ECC_Close(self.dev_handle)
@@ -162,12 +201,8 @@ if __name__ == "__main__":
     ecc = ECCControl()
     ecc.connect()
     ecc.set_amplitude(1,30000)
-    print(ecc.get_amplitude(1))
-    #ecc.move_enabled_feedback(1)
-    #ecc.control_continuous_forward(1,enable=True,set=True)
-    #ecc.enable_output(1)
-    #ecc.set_single_step(1,0)
-    #ecc.move_target(1,target=10000,set=True)
-    #ecc.move_to(1,target=100000)
-    ecc.disable_output(1)
+    ecc.set_frequency(1,100000) 
+    print(ecc.get_frequency(1))
+    print(ecc.get_position(1))
+    ecc.move_to(1,target=20000) # move 10 microns
     ecc.close()
