@@ -259,8 +259,10 @@ class Ui_FiberCharacterization(object):
             print("Must have turned the live video on before trying to capture images")
 
     def move_attocube(self):
+        self.ecc.set_frequency(self.axis,1000000)
         value = int(self.moveBy.value()*1000)
-        self.ecc.move_to(self.axis,target=value)
+        self.ecc.move_to(self.axis,target=value,targetRange = 10000)
+        self.ecc.set_frequency(self.axis,100000)
     # retranslateUi
     
 if __name__ == "__main__":
