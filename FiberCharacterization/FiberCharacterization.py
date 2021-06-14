@@ -217,10 +217,15 @@ class Ui_FiberCharacterization(object):
     
     def start_video(self):
         self.timer.start(self.timeBetweenFrames)
-        self.camera.start_live_video()
+        self.camera.start_live_video(exposure_time=self.exposureTime.value())
         self.live = True
         self.timer.timeout.connect(self.view_camera)
-        
+
+    def change_exposure(self):
+        if self.live:
+            self.camera.stop_live_video()
+            self.camera.start_live_video(exposure_time=self.exposureTime.value())
+            
     def view_camera(self):
         self.cameraImage.setImage(self.camera.latest_frame())
         
@@ -254,8 +259,10 @@ class Ui_FiberCharacterization(object):
             print("Must have turned the live video on before trying to capture images")
 
     def move_attocube(self):
+        self.ecc.set_frequency(self.axis,1000000)
         value = int(self.moveBy.value()*1000)
-        self.ecc.move_to(self.axis,target=value)
+        self.ecc.move_to(self.axis,target=value,targetRange = 10000)
+        self.ecc.set_frequency(self.axis,100000)
     # retranslateUi
     
 if __name__ == "__main__":
