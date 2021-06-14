@@ -217,10 +217,15 @@ class Ui_FiberCharacterization(object):
     
     def start_video(self):
         self.timer.start(self.timeBetweenFrames)
-        self.camera.start_live_video()
+        self.camera.start_live_video(exposure_time=self.exposureTime.value())
         self.live = True
         self.timer.timeout.connect(self.view_camera)
-        
+
+    def change_exposure(self):
+        if self.live:
+            self.camera.stop_live_video()
+            self.camera.start_live_video(exposure_time=self.exposureTime.value())
+            
     def view_camera(self):
         self.cameraImage.setImage(self.camera.latest_frame())
         
