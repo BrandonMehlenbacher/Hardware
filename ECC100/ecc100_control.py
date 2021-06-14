@@ -8,7 +8,7 @@ lib=oledll.LoadLibrary('C:/Program Files/Software_ECC100/Software_ECC100_1.6.8/E
 class EccInfo(Structure):
     _fields_ = [('id',c_int32),('locked',c_bool)]
 
-class ECCControl:
+class ECC100Control:
     """
     Most of this work is based off of the instrumental-lib library implementation and I am just rewriting it so I do not have to use their package
     Please check their project out, I use a lot of their modules and it is amazing https://github.com/mabuchilab/Instrumental
@@ -155,8 +155,6 @@ class ECCControl:
         targetRange = 1000#self.control_target_range(1)
         position = self.get_position(axis)
         targetPosition = self.get_target(axis)
-        print(position," position")
-        print(targetPosition," target")
         return abs(position-targetPosition)<=targetRange
 
     def is_moving_forward(self,axis):
@@ -198,11 +196,11 @@ class ECCControl:
         self.handle_err(ret,func="Close")
         
 if __name__ == "__main__":
-    ecc = ECCControl()
+    ecc = ECC100Control()
     ecc.connect()
-    ecc.set_amplitude(1,30000)
-    ecc.set_frequency(1,100000) 
+    ecc.set_amplitude(1,30000) #30 V
+    ecc.set_frequency(1,100000)  # 100 Hz
     print(ecc.get_frequency(1))
     print(ecc.get_position(1))
-    ecc.move_to(1,target=20000) # move 10 microns
+    ecc.move_to(1,target=10000) # move 10 microns
     ecc.close()
