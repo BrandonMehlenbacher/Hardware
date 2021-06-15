@@ -2,7 +2,7 @@ from ctypes import (c_int32, c_bool, byref, create_string_buffer, Structure, POI
 from enum import Enum
 import time
 
-lib=oledll.LoadLibrary('C:/Program Files/Software_ECC100/Software_ECC100_1.6.8/ECC100_DLL/Win64/ecc.dll')
+lib=oledll.LoadLibrary('C:/Program Files/Software_ECC100_1.6.8/ECC100_DLL/Win64/ecc.dll')
 
     
 class EccInfo(Structure):
@@ -151,8 +151,8 @@ class ECC100Control:
     def disable_output(self,axis):
         self.control_output(axis,enable=False,set=True)
 
-    def wait_until_position(self,axis):
-        targetRange = 1000#self.control_target_range(1)
+    def wait_until_position(self,axis,targetRange=1000):
+        targetRange = targetRange#self.control_target_range(1)
         position = self.get_position(axis)
         targetPosition = self.get_target(axis)
         return abs(position-targetPosition)<=targetRange
@@ -163,7 +163,7 @@ class ECC100Control:
     def is_moving_backward(self,axis):
         return self.control_continuous_backward(axis)
     
-    def move_to(self,axis,target=None):
+    def move_to(self,axis,target=None,targetRange= 1000):
         if target == None:
             raise ValueError("Must enter a value to move to a targeted position")
         self.move_enabled_feedback(axis)
@@ -175,13 +175,11 @@ class ECC100Control:
         if self.wait_until_position(axis):
             return
         if initialPosition < targetPosition:
-            print("forward it is")
             self.control_continuous_forward(1,enable=True,set=True)
         elif initialPosition > targetPosition:
-            print("backward it is")
             self.control_continuous_backward(1,enable=True,set=True)
         self.enable_output(axis)
-        while not self.wait_until_position(axis):
+        while not self.wait_until_position(axis,targetRange=targetRange):
             pass
         self.stop_stepping(axis)
 
