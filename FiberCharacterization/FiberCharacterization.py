@@ -159,6 +159,10 @@ class Ui_FiberCharacterization(object):
         FiberCharacterization.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(FiberCharacterization)
         self.statusbar.setObjectName(u"statusbar")
+        self.autoExposure = QPushButton(self.centralwidget)
+        self.autoExposure.setObjectName(u"autoExposure")
+        self.autoExposure.setGeometry(QRect(680, 130, 141, 41))
+        self.autoExposure.setFont(font)
         FiberCharacterization.setStatusBar(self.statusbar)
 
         self.retranslateUi(FiberCharacterization)
@@ -173,6 +177,7 @@ class Ui_FiberCharacterization(object):
         self.moveBy.valueChanged.connect(self.move_attocube_thread)
         self.users.currentItemChanged.connect(self.change_filepath)
         self.exposureTime.valueChanged.connect(self.change_exposure)
+        self.autoExposure.clicked.connect(self.auto_exposure)
         self.timer = QTimer()
     # setupUi
 
@@ -206,6 +211,7 @@ class Ui_FiberCharacterization(object):
         self.folderName.setText(QCoreApplication.translate("FiberCharacterization", u"FiberAblation", None))
         self.background.setText(QCoreApplication.translate("FiberCharacterization", u"Background? (T/F)", None))
         self.labelFolderName.setText(QCoreApplication.translate("FiberCharacterization", u"Folder Name", None))
+        self.autoExposure.setText(QCoreApplication.translate("FiberCharacterization", u"Auto Exposure", None))
     def connect_to_camera(self, serial):
         camera = None
         for x in range(len(self.instrumentList)):
@@ -271,6 +277,9 @@ class Ui_FiberCharacterization(object):
     def move_attocube_thread(self):
         myThread = threading.Thread(target=self.move_attocube,daemon =False)
         myThread.start()
+
+    def auto_exposure(self):
+        self.camera.set_auto_exposure()
     # retranslateUi
     
 if __name__ == "__main__":
