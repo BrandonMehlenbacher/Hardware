@@ -13,8 +13,7 @@ import time
 from datetime import date
 import os
 warnings.simplefilter("ignore")
-sys.path.append("C:/Users/bmehl/Desktop/Research_Programs/Hardware")
-
+sys.path.append("C:/Users/Raman-Goldsmith/Desktop/Hardware")
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
@@ -23,14 +22,17 @@ from instrumental import instrument, list_instruments
 import pyqtgraph as pg
 import numpy as np
 import matplotlib.pyplot as plt
+import threading
 from ECC100.ecc100_control import ECC100Control
 
 class Ui_FiberCharacterization(object):
     def __init__(self):
         self.instrumentList = list_instruments()
-        self.camera = self.connect_to_camera(b'4103577042')
+        self.camera = self.connect_to_camera(b'4103384482')
+        if self.camera == None:
+            raise ValueError("No Camera was found")
         self.timeBetweenFrames = 50
-        self.live = False
+        self.liveValue = False
         self.today = str(date.today())
         self.parentPath = "//marlin.chem.wisc.edu/groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
         self.axis = 1 # this is the axis needed for taking the pictures, can be changed if necessary
@@ -96,6 +98,7 @@ class Ui_FiberCharacterization(object):
         self.exposureTime.setGeometry(QRect(20, 440, 191, 31))
         self.exposureTime.setFont(font)
         self.exposureTime.setValue(20.000000000000000)
+        self.exposureTime.setKeyboardTracking(False)
         self.lableAverageNumber = QLabel(self.centralwidget)
         self.lableAverageNumber.setObjectName(u"lableAverageNumber")
         self.lableAverageNumber.setGeometry(QRect(20, 480, 181, 21))
@@ -123,7 +126,7 @@ class Ui_FiberCharacterization(object):
         self.moveBy.setMinimum(-12500.000000000000000)
         self.moveBy.setMaximum(25000.000000000000000)
         self.moveBy.setSingleStep(0.001000000000000)
-        self.moveBy.setValue(0.000000000000000)
+        self.moveBy.setValue(self.ecc.get_position(self.axis)/1000)
         self.moveBy.setKeyboardTracking(False)
         self.labelMoveTo = QLabel(self.centralwidget)
         self.labelMoveTo.setObjectName(u"labelMoveTo")
@@ -167,8 +170,9 @@ class Ui_FiberCharacterization(object):
         QMetaObject.connectSlotsByName(FiberCharacterization)
         self.live.clicked.connect(self.start_video)
         self.capture.clicked.connect(self.capture_image)
-        self.moveBy.valueChanged.connect(self.move_attocube)
+        self.moveBy.valueChanged.connect(self.move_attocube_thread)
         self.users.currentItemChanged.connect(self.change_filepath)
+        self.exposureTime.valueChanged.connect(self.change_exposure)
         self.timer = QTimer()
     # setupUi
 
@@ -206,6 +210,8 @@ class Ui_FiberCharacterization(object):
         camera = None
         for x in range(len(self.instrumentList)):
                 # this is the serial number for the camera and needs to be changed if camera is switched
+                if 'serial' not in self.instrumentList[x].keys():
+                    pass
                 if self.instrumentList[x]['serial'] == serial:
                     camera = instrument(self.instrumentList[x])
                     break
@@ -216,15 +222,16 @@ class Ui_FiberCharacterization(object):
         self.filepath = self.parentPath+'/'+self.users.currentItem().text()+'/'+self.folderName.toPlainText()+'/'+self.today
     
     def start_video(self):
-        self.timer.start(self.timeBetweenFrames)
-        self.camera.start_live_video(exposure_time=self.exposureTime.value())
-        self.live = True
-        self.timer.timeout.connect(self.view_camera)
+        if not self.liveValue:
+            self.timer.start(self.timeBetweenFrames)
+            self.camera.start_live_video(exposure_time=f"{self.exposureTime.value()}ms")
+            self.liveValue = True
+            self.timer.timeout.connect(self.view_camera)
 
     def change_exposure(self):
-        if self.live:
+        if self.liveValue:
             self.camera.stop_live_video()
-            self.camera.start_live_video(exposure_time=self.exposureTime.value())
+            self.camera.start_live_video(exposure_time=f"{self.exposureTime.value()}ms")
             
     def view_camera(self):
         self.cameraImage.setImage(self.camera.latest_frame())
@@ -239,14 +246,11 @@ class Ui_FiberCharacterization(object):
             os.makedirs(self.filepath)
         plt.imsave(self.filepath+"/"+filename+".tiff",self.image)
         time.sleep(0.1)
-        
-    def change_exposure(self,time):
-        self.camera._set_exposure(time)
 
     def capture_image(self):
         if self.background.isChecked():
             self.save_image(self.grab_image(),f"fiber{self.fiberNumber.value()}_interference_bg")
-        elif self.live:
+        elif self.liveValue:
             for i in range(5): # we use 5 images for our averaging
                 image_array = np.zeros(shape=(1024,1280,int(self.averageNumber.value())))
                 for j in range(int(self.averageNumber.value())):
@@ -263,6 +267,10 @@ class Ui_FiberCharacterization(object):
         value = int(self.moveBy.value()*1000)
         self.ecc.move_to(self.axis,target=value,targetRange = 10000)
         self.ecc.set_frequency(self.axis,100000)
+
+    def move_attocube_thread(self):
+        myThread = threading.Thread(target=self.move_attocube,daemon =False)
+        myThread.start()
     # retranslateUi
     
 if __name__ == "__main__":
