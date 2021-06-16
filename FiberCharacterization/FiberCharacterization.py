@@ -13,8 +13,7 @@ import time
 from datetime import date
 import os
 warnings.simplefilter("ignore")
-sys.path.append("C:/Users/bmehl/Desktop/Research_Programs/Hardware")
-
+sys.path.append("C:/Users/Raman-Goldsmith/Desktop/Hardware")
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
@@ -23,21 +22,35 @@ from instrumental import instrument, list_instruments
 import pyqtgraph as pg
 import numpy as np
 import matplotlib.pyplot as plt
+import threading
 from ECC100.ecc100_control import ECC100Control
 
 class Ui_FiberCharacterization(object):
+    """
+    Main gui for performing fiber characterization
+    Requirements: UC480 camera and Attocube 1 axis stage (also works with attocube 3 axis stage)
+
+    How to run:
+    First: Run the GUI by either initializing it through IDLE and running the program or by going to some terminal and running the program
+    Second: Hit Live button, this will allow the camera to begin functioning properly. Attocube can be moved beforehand
+    Third: Adjusting number of averages to the desired number and then hit capture. (Note: Average number has to be at least 1 or else no picture will be taken)
+    Fourth: Analyze your data and repeat.
+    Fifth: Shutdown the program by closing both windows
+    """
     def __init__(self):
-        self.instrumentList = list_instruments()
-        self.camera = self.connect_to_camera(b'4103577042')
-        self.timeBetweenFrames = 50
-        self.live = False
+        self.instrumentList = list_instruments() #lists all the instruments supported by the instrumental-lib package
+        self.camera = self.connect_to_camera(b'4103384482') #this is the current camera that is being used on CO2 set-up, change if this gets adjusted
+        if self.camera == None:
+            raise ValueError("No Camera was found")
+        self.timeBetweenFrames = 50 #this is the time between setting new images for the image view, i set it to 50 ms for arbitrary reasons
+        self.liveValue = False
         self.today = str(date.today())
         self.parentPath = "//marlin.chem.wisc.edu/groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
         self.axis = 1 # this is the axis needed for taking the pictures, can be changed if necessary
-        self.ecc = ECC100Control()
+        self.ecc = ECC100Control() # allows for control of the attocube
         self.ecc.connect()
-        self.ecc.set_frequency(self.axis,100000)
-        self.ecc.set_amplitude(self.axis,30000)
+        self.ecc.set_frequency(self.axis,100000) # sets the frequency of the attocube stage, the units are in mHz so right now it is 100 Hz which was found to give reasonable resolution
+        self.ecc.set_amplitude(self.axis,30000)# sets the voltage applied to the piezos, 30 V was found to be able to adjust forward and backward position of the motors
     def setupUi(self, FiberCharacterization):
         if not FiberCharacterization.objectName():
             FiberCharacterization.setObjectName(u"FiberCharacterization")
@@ -96,6 +109,7 @@ class Ui_FiberCharacterization(object):
         self.exposureTime.setGeometry(QRect(20, 440, 191, 31))
         self.exposureTime.setFont(font)
         self.exposureTime.setValue(20.000000000000000)
+        self.exposureTime.setKeyboardTracking(False)
         self.lableAverageNumber = QLabel(self.centralwidget)
         self.lableAverageNumber.setObjectName(u"lableAverageNumber")
         self.lableAverageNumber.setGeometry(QRect(20, 480, 181, 21))
@@ -123,7 +137,7 @@ class Ui_FiberCharacterization(object):
         self.moveBy.setMinimum(-12500.000000000000000)
         self.moveBy.setMaximum(25000.000000000000000)
         self.moveBy.setSingleStep(0.001000000000000)
-        self.moveBy.setValue(0.000000000000000)
+        self.moveBy.setValue(self.ecc.get_position(self.axis)/1000)
         self.moveBy.setKeyboardTracking(False)
         self.labelMoveTo = QLabel(self.centralwidget)
         self.labelMoveTo.setObjectName(u"labelMoveTo")
@@ -156,6 +170,10 @@ class Ui_FiberCharacterization(object):
         FiberCharacterization.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(FiberCharacterization)
         self.statusbar.setObjectName(u"statusbar")
+        self.autoExposure = QPushButton(self.centralwidget)
+        self.autoExposure.setObjectName(u"autoExposure")
+        self.autoExposure.setGeometry(QRect(680, 130, 141, 41))
+        self.autoExposure.setFont(font)
         FiberCharacterization.setStatusBar(self.statusbar)
 
         self.retranslateUi(FiberCharacterization)
@@ -169,6 +187,8 @@ class Ui_FiberCharacterization(object):
         self.capture.clicked.connect(self.capture_image)
         self.moveBy.valueChanged.connect(self.move_attocube)
         self.users.currentItemChanged.connect(self.change_filepath)
+        self.exposureTime.valueChanged.connect(self.change_exposure)
+        self.autoExposure.clicked.connect(self.auto_exposure)
         self.timer = QTimer()
     # setupUi
 
@@ -202,54 +222,65 @@ class Ui_FiberCharacterization(object):
         self.folderName.setText(QCoreApplication.translate("FiberCharacterization", u"FiberAblation", None))
         self.background.setText(QCoreApplication.translate("FiberCharacterization", u"Background? (T/F)", None))
         self.labelFolderName.setText(QCoreApplication.translate("FiberCharacterization", u"Folder Name", None))
+        self.autoExposure.setText(QCoreApplication.translate("FiberCharacterization", u"Auto Exposure", None))
+        
     def connect_to_camera(self, serial):
         camera = None
         for x in range(len(self.instrumentList)):
                 # this is the serial number for the camera and needs to be changed if camera is switched
+                if 'serial' not in self.instrumentList[x].keys():
+                    pass
                 if self.instrumentList[x]['serial'] == serial:
                     camera = instrument(self.instrumentList[x])
                     break
-        #camera.start_live_video()
         return camera
 
     def change_filepath(self):
         self.filepath = self.parentPath+'/'+self.users.currentItem().text()+'/'+self.folderName.toPlainText()+'/'+self.today
     
     def start_video(self):
-        self.timer.start(self.timeBetweenFrames)
-        self.camera.start_live_video(exposure_time=self.exposureTime.value())
-        self.live = True
-        self.timer.timeout.connect(self.view_camera)
+        if not self.liveValue:
+            self.timer.start(self.timeBetweenFrames)
+            self.camera.start_live_video(exposure_time=f"{self.exposureTime.value()}ms")
+            self.liveValue = True
+            self.timer.timeout.connect(self.view_camera)
 
     def change_exposure(self):
-        if self.live:
+        if self.liveValue:
             self.camera.stop_live_video()
-            self.camera.start_live_video(exposure_time=self.exposureTime.value())
+            self.camera.start_live_video(exposure_time=f"{self.exposureTime.value()}ms")
             
     def view_camera(self):
         self.cameraImage.setImage(self.camera.latest_frame())
         
     def grab_image(self):
+        """
+        grabs the latest frame of the images and converts the image to a unsigned int8 datatype (unsigned 8 bit datatype)
+        """
         self.image = self.camera.latest_frame()
         self.image = self.image.astype(np.uint8)
         return self.image
         
     def save_image(self, data, filename):
         if not os.path.isdir(self.filepath):
-            os.makedirs(self.filepath)
+            os.makedirs(self.filepath) # makes the directory if there is not one already there
         plt.imsave(self.filepath+"/"+filename+".tiff",self.image)
+        #waits to ensure all of the images can be saved
         time.sleep(0.1)
-        
-    def change_exposure(self,time):
-        self.camera._set_exposure(time)
 
     def capture_image(self):
-        if self.background.isChecked():
+        """
+        Allows for capturing of a series of images and a background image for later processing
+
+        Relies on background being checked and having the live button pressed prior to being used
+        """
+        if self.background.isChecked() and self.liveValue:
             self.save_image(self.grab_image(),f"fiber{self.fiberNumber.value()}_interference_bg")
-        elif self.live:
-            for i in range(5): # we use 5 images for our averaging
+        elif self.liveValue:
+            for i in range(5): # we use 5 images for our interferometry, if code is changed to 6 images this has to be changed accordingly
                 image_array = np.zeros(shape=(1024,1280,int(self.averageNumber.value())))
                 for j in range(int(self.averageNumber.value())):
+                    # stores the images to be saved later
                     image_array[:,:,j] = self.grab_image()
                     time.sleep(self.delayTime.value()//1000)
                 for j in range(int(self.averageNumber.value())):
@@ -258,11 +289,24 @@ class Ui_FiberCharacterization(object):
         else:
             print("Must have turned the live video on before trying to capture images")
 
+    def _move_attocube(self):
+        """
+        Main function for moving the attocube, changes the frequency so that the attocube will move more quickly when making macroscopic jumps
+        """
+        self.ecc.set_frequency(self.axis,1000000) #changes frequency to 1000 Hz
+        value = int(self.moveBy.value()*1000) # needs to be multiplied by a 1000 since attocube reads positions in nm
+        self.ecc.move_to(self.axis,target=value,targetRange = 10000) # target position range is 10 microns, accuracy is not the main goal here but this should be good enough
+        self.ecc.set_frequency(self.axis,100000)# changes stage back to 100 Hz for more precise movements
+
     def move_attocube(self):
-        self.ecc.set_frequency(self.axis,1000000)
-        value = int(self.moveBy.value()*1000)
-        self.ecc.move_to(self.axis,target=value,targetRange = 10000)
-        self.ecc.set_frequency(self.axis,100000)
+        myThread = threading.Thread(target=self.move_attocube,daemon = False)
+        myThread.start()
+
+    def auto_exposure(self):
+        """
+        automatically adjusts the exposure of the camera to be optimized for the viewed image
+        """
+        self.camera.set_auto_exposure()
     # retranslateUi
     
 if __name__ == "__main__":
@@ -274,3 +318,4 @@ if __name__ == "__main__":
     FiberCharacterization.show()
     sys.exit(app.exec_())
     ui.ecc.close()
+    ui.camera.close()
