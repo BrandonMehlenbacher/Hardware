@@ -55,7 +55,7 @@ class ECC100Control:
         print(retval)
         raise Exception("\n".join(lines))
     
-    def control_amplitude(self, axis,amplitude = 0,set=False):
+    def _control_amplitude(self, axis,amplitude = 0,set=False):
         """
         Controls the amplitude of the attocube
         Units are in mV so to set to 30 V must be 30000 mV
@@ -69,15 +69,15 @@ class ECC100Control:
         """
         Gets the set amplitude of the attocube, units are in mV
         """
-        return self.control_amplitude(axis)
+        return self._control_amplitude(axis)
     
     def set_amplitude(self,axis,value):
         """
         Sets the amplitude of the attocube, units are in mV
         """
-        self.control_amplitude(axis,value,set=True)
+        self._control_amplitude(axis,value,set=True)
 
-    def control_frequency(self, axis,frequency = 0,set=False):
+    def _control_frequency(self, axis,frequency = 0,set=False):
         """
         Controls the frequency of the attocube, units are in mHz so to set 100 Hz must be 100000 mHz
         """
@@ -91,17 +91,15 @@ class ECC100Control:
         """
         Gets the frequency of the attocube, units are in mHz
         """
-        return self.control_frequency(axis)
+        return self._control_frequency(axis)
 
     def set_frequency(self,axis,value):
         """
         Sets the frequency of the attocube, units are in mHz
         """
-        self.control_frequency(axis,value,set=True)
+        self._control_frequency(axis,value,set=True)
 
-
-
-    def control_move_feedback(self, axis,enable = False,set=False):
+    def _control_move_feedback(self, axis,enable = False,set=False):
         """
         Controls if the attocube is moving under closed loop feedback
         """
@@ -114,21 +112,21 @@ class ECC100Control:
         """
         Enables closed loop feedback for moving attocube
         """
-        self.control_move_feedback(axis,enable=True,set=True)
+        self._control_move_feedback(axis,enable=True,set=True)
 
     def move_disable_feedback(self,axis):
         """
         Disables closed loop feedback for moving attocube
         """
-        self.control_move_feedback(axis,enable=False,set=True)
+        self._control_move_feedback(axis,enable=False,set=True)
 
     def move_status(self,axis):
         """
         Gets the current status of the movement
         """
-        return self.control_move(axis)
+        return self._control_move_feedback(axis)
 
-    def control_continuous_forward(self,axis,enable=False,set=False):
+    def _control_continuous_forward(self,axis,enable=False,set=False):
         """
         Allows for attocube to move forward
         """
@@ -141,9 +139,9 @@ class ECC100Control:
         """
         Checks if the attocube is moving forward
         """
-        return self.control_continuous_forward(axis)
+        return self._control_continuous_forward(axis)
 
-    def control_continuous_backward(self,axis,enable=False,set=False):
+    def _control_continuous_backward(self,axis,enable=False,set=False):
         """
         Allows for attocube to move backward
         """
@@ -156,16 +154,16 @@ class ECC100Control:
         """
         Checks if the attocube is moving backwards
         """
-        return self.control_continuous_backward(axis)
+        return self._control_continuous_backward(axis)
 
     def stop_stepping(self,axis):
         """
         Stops the attocube from moving forward or backward, depending on which is active
         """
         if self.is_moving_forward(axis):
-            self.control_continuous_forward(1,enable=False,set=True)
+            self._control_continuous_forward(1,enable=False,set=True)
         if self.is_moving_backward(axis):
-            self.control_continuous_backward(1,enable=False,set=True)
+            self._control_continuous_backward(1,enable=False,set=True)
 
     def get_position(self,axis):
         """
@@ -176,7 +174,7 @@ class ECC100Control:
         self.handle_err(ret,func="get_position")
         return position.value
 
-    def move_target(self,axis,target= 0,set=False):
+    def _move_target(self,axis,target= 0,set=False):
         """
         Controls the target of the attocube, this is relative to the original 0 so for instance going from 0 to 10 microns you would set 10000, then 20000 to move to 20 microns not 10 microns again
         units are in nm so to move 1 micron must be set to 1000 nm
@@ -190,13 +188,13 @@ class ECC100Control:
         """
         Gets the target position
         """
-        return self.move_target(axis)
+        return self._move_target(axis)
 
     def set_target(self,axis,target):
         """
         Sets the target position
         """
-        return self.move_target(axis,target, set=True)       
+        return self._move_target(axis,target, set=True)       
 
     def move_range(self,axis,rangeVal= None,set=False):
         """
@@ -217,7 +215,7 @@ class ECC100Control:
         ret = self.lib.ECC_setSingleStep(self.dev_handle,axis,backward)
         self.handle_err(ret,func="set_single_step")
 
-    def control_output(self,axis,enable=False, set=False):
+    def _control_output(self,axis,enable=False, set=False):
         """
         Allows for movement of the attocube, can be switched from off to on
         """
@@ -230,13 +228,13 @@ class ECC100Control:
         """
         Enables output of the attocube
         """
-        self.control_output(axis,enable=True,set=True)
+        self._control_output(axis,enable=True,set=True)
 
     def disable_output(self,axis):
         """
         Disables output of the attocube
         """
-        self.control_output(axis,enable=False,set=True)
+        self._control_output(axis,enable=False,set=True)
 
     def wait_until_position(self,axis,targetRange=1000):
         """
