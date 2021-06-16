@@ -174,7 +174,7 @@ class Ui_FiberCharacterization(object):
         QMetaObject.connectSlotsByName(FiberCharacterization)
         self.live.clicked.connect(self.start_video)
         self.capture.clicked.connect(self.capture_image)
-        self.moveBy.valueChanged.connect(self.move_attocube_thread)
+        self.moveBy.valueChanged.connect(self.move_attocube)
         self.users.currentItemChanged.connect(self.change_filepath)
         self.exposureTime.valueChanged.connect(self.change_exposure)
         self.autoExposure.clicked.connect(self.auto_exposure)
@@ -268,13 +268,13 @@ class Ui_FiberCharacterization(object):
         else:
             print("Must have turned the live video on before trying to capture images")
 
-    def move_attocube(self):
+    def _move_attocube(self):
         self.ecc.set_frequency(self.axis,1000000)
         value = int(self.moveBy.value()*1000)
         self.ecc.move_to(self.axis,target=value,targetRange = 10000)
         self.ecc.set_frequency(self.axis,100000)
 
-    def move_attocube_thread(self):
+    def move_attocube(self):
         myThread = threading.Thread(target=self.move_attocube,daemon =False)
         myThread.start()
 
