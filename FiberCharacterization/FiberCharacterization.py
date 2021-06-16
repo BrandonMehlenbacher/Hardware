@@ -254,7 +254,7 @@ class Ui_FiberCharacterization(object):
         time.sleep(0.1)
 
     def capture_image(self):
-        if self.background.isChecked():
+        if self.background.isChecked() and self.liveValue:
             self.save_image(self.grab_image(),f"fiber{self.fiberNumber.value()}_interference_bg")
         elif self.liveValue:
             for i in range(5): # we use 5 images for our averaging
