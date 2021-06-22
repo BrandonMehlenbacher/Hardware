@@ -3,19 +3,22 @@ import os
 import numpy as np
 import platform
 import os
-from ctypes import *
+from ctypes import (c_int32, c_bool, byref, create_string_buffer, Structure, POINTER, oledll)
 import time
 
-import clr
-from System.Reflection import Assembly
-from System.Text import StringBuilder
-from System import Int32
-from System.Collections import Hashtable
-driver_path = 'C:\\Program Files\\Newport\\Newport USB Driver\\Bin\\UsbDllWrap.dll'
-Assembly.LoadFile(driver_path)
-clr.AddReference(r'UsbDllWrap')
-import Newport
-
+#import clr
+#from System.Reflection import Assembly
+#from System.Text import StringBuilder
+#from System import Int32
+#from System.Collections import Hashtable
+#driver_path = 'C:/Program Files/Newport/Newport USB Driver/Bin/UsbDllWrap.dll'
+#driver_path = 'C:/Program Files/Newport/Newport USB Driver/Bin/usbdll.dll'
+driver_path = 'C:/WINDOWS/system32/usbdll.dll'
+lib = oledll.LoadLibrary(driver_path)
+#Assembly.LoadFile(driver_path)
+#clr.AddReference(r'UsbDllWrap')
+#import Newport
+"""
 class TLB_6700_controller(object):
     def __init__(self,desiredLaser):
         self._newport_devices = Newport.USBComm.USB(bLogging=True)
@@ -35,17 +38,17 @@ class TLB_6700_controller(object):
         for x in range(len(array_list)):
             if (array_list[x].get_Description()[29:] == self._desired_laser):
                 array_list[x].set_ID(1)
-        """
-        the idea for this code is to later implement control over both lasers instead of just one
-        this is a work in progress as I have yet to figure out why it wont work
-        for x in range(len(array_list)):
-            if (array_list[x].get_Description()[29:] == self._lasers_lab[0]):
-                array_list[x].set_ID(x+1)
-                self._ID_list.append(x+1)
-            elif (array_list[x].get_Description()[29:] == self._lasers_lab[1]):
-                array_list[x].set_ID(x+1)
-                self._ID_list.append(x+1)
-        """
+
+        #the idea for this code is to later implement control over both lasers instead of just one
+        #this is a work in progress as I have yet to figure out why it wont work
+        #for x in range(len(array_list)):
+         #   if (array_list[x].get_Description()[29:] == self._lasers_lab[0]):
+         #       array_list[x].set_ID(x+1)
+          #      self._ID_list.append(x+1)
+          #  elif (array_list[x].get_Description()[29:] == self._lasers_lab[1]):
+           #     array_list[x].set_ID(x+1)
+             #   self._ID_list.append(x+1)
+
     def controllers_list(self,USB_controllers):
         controller_list = []
         for controller in range(len(USB_controllers)):
@@ -284,51 +287,88 @@ class TLB_6700_controller(object):
         string = self.buffer.ToString()
         if string != "OK":
             print(string)
+"""
+class TLB_6700_controller(object):
+    
+    def __init__(self,serialNumber):
+        self._lib = lib
+        self.usb_init_system()
+        self._device = self.get_instrument_list(serialNumber)
         
+    def _handle_error(self,value):
+         if value != 0:
+             print("there was an error that occurred, please implement a better error system later")
+             
+    def get_instrument_list(self,serialNumber):
+        arInstruments = POINTER(c_int32)()
+        arInstrumentsModel = POINTER(c_int32)()
+        arInstrumentsSN = POINTER(c_int32)()
+        nArraySize = POINTER(c_int32)()
+        value = self._lib.GetInstrumentList(byref(arInstruments),byref(arInstrumentsModel),byref(arInstrumentsSN),byref(nArraySize))
+        self._handle_error(value)
+        return None
+        
+    def usb_get_device_count(self):
+        pass
+    def usb_get_devive_key_from_device_id(self):
+        pass
+    def usb_dget_device_keys(self):
+        pass
+    def usb_get_os_name(self):
+        pass
+    def usb_set_logging(self):
+        pass
+    def usb_set_tracelog(self):
+        pass
+    def usb_event_assign_key(self):
+        pass
+    def usb_event_get_attached_devices(self):
+        pass
+    def usb_event_get_key_from_handle(self):
+        pass
+    def usb_event_init(self):
+        pass
+    def usb_event_remove_key(self):
+        pass
+    def usb_get_ascii(self):
+        pass
+    def usb_get_ascii_by_deviceID(self):
+        pass
+    def usb_get_device_info(self):
+        pass
+    def usb_get_model_serial_keys(self):
+        pass
+    def usb_init_system(self):
+        err = self._lib.newp_usb_init_system()
+        self._handle_error(err)
+    def usb_init_product(self,productID: int):
+        productID = c_int32(productID)
+        err = self._lib.newp_usb_init_product(byref(productID))
+        self._handle_error(err)
+    def usb_open_devices(self,productID: int,UseUSBAddress: bool):
+        productID = c_int32(productID)
+        useUSBAddress = c_bool(UseUSBAddress)
+        nNumDevices = POINTER(c_int32)()
+        err = self._lib.newp_usb_open_devices(byref(productID),byref(useUSBAddress),byref(nNumDevices))
+        self._handle_error(err)
+    def usb_read_ascii_by_key(self):
+        pass
+    def usb_read_by_key(self):
+        pass
+    def usb_send_ascii(self):
+        pass
+    def usb_send_binary(self):
+        pass
+    def usb_uninit_system(self):
+        err = self._lib.newp_usb_unint_system()
+        self._handle_error(err)
+    def usb_write_binary_by_key(self):
+        pass
+    def usb_write_by_key(self):
+        pass
+    
+        
+
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
-    wavelength = 765.10
-    settingChange = -1
-    laser.set_control_remote_mode("REM")
-    while settingChange != 20:
-        settingChange = int(input("What would you like to do to the laser? \n 1: Turn On \n 2: Turn Off \n 3: Start Scan \n 4: Print Wavelength \n 5: Change Wavelength\n 6: Check Operation Complete\n 7: Get Wavelength \n 8: Change Number of Scans\n"))
-        if settingChange == 1:
-            laser.output_state_laser(1)
-        elif settingChange == 2:
-            laser.output_state_laser(0)
-        elif settingChange == 3:
-            laser.start_scan()
-        elif settingChange == 4:
-            laser.change_state_lambda_track(1)
-        elif settingChange == 5:
-            if not laser.check_lambda_track():
-                laser.change_state_lambda_track_on()
-                time.sleep(1)
-            laser.change_wavelength(wavelength)
-            if wavelength > 780:
-                wavelength -= 1
-            else:
-                wavelength += 1
-            time.sleep(1)
-        elif settingChange ==6:
-            laser.operation_completed()
-        elif settingChange == 7:
-            if laser.status_byte():
-                value = laser.get_wavelength()
-                print(value)
-        elif settingChange == 8:
-            laser.change_number_scans(4)
-        elif settingChange == 9:
-            laser.change_velocity_wavelength_change_forward(0.2)
-            time.sleep(0.1)
-            laser.change_velocity_wavelength_change_reverse(0.2)
-        elif settingChange == 10:
-            laser.get_error_string()
-        elif settingChange == 11:
-            laser.change_state_lambda_track_on()
-        elif settingChange == 12:
-            laser.change_state_lambda_track_off()
-        elif settingChange == 13:
-            laser.change_mode_laser_power(1)
-    laser.set_control_remote_mode("LOC")
-    laser.close_devices()
+    
