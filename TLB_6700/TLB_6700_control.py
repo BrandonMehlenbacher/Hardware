@@ -3,7 +3,7 @@ import os
 import numpy as np
 import platform
 import os
-from ctypes import (c_int32, c_bool, byref, create_string_buffer, Structure, POINTER, oledll)
+from ctypes import (c_int32, c_bool, byref, create_string_buffer, POINTER, oledll, c_wchar_p, c_char_p ,c_ulong)
 import time
 
 #import clr
@@ -293,13 +293,13 @@ class TLB_6700_controller(object):
     def __init__(self,serialNumber):
         self._lib = lib
         self.usb_init_system()
-        self._device = self.get_instrument_list(serialNumber)
+        self._device = self.get_instrument_list()
         
     def _handle_error(self,value):
          if value != 0:
              print("there was an error that occurred, please implement a better error system later")
              
-    def get_instrument_list(self,serialNumber):
+    def get_instrument_list(self):
         arInstruments = POINTER(c_int32)()
         arInstrumentsModel = POINTER(c_int32)()
         arInstrumentsSN = POINTER(c_int32)()
@@ -310,60 +310,99 @@ class TLB_6700_controller(object):
         
     def usb_get_device_count(self):
         pass
+    
     def usb_get_devive_key_from_device_id(self):
         pass
+    
     def usb_dget_device_keys(self):
         pass
+    
     def usb_get_os_name(self):
-        pass
-    def usb_set_logging(self):
-        pass
-    def usb_set_tracelog(self):
-        pass
+        buffer  = create_string_buffer(64)
+        err = self._lib.newp_usb_GetOsName(buffer)
+        self._handle_error(err)
+        
+    def usb_set_logging(self, logging: bool):
+        logging = c_bool(logging)
+        err = self.newp_usb_SetLogging(logging)
+        self._handle_error(err)
+    
+    def usb_set_tracelog(self, log: bool):
+        log = c_bool(logging)
+        err = self.newp_usb_SetTraceLog(log)
+        self._handle_error(err)
+    
     def usb_event_assign_key(self):
         pass
+    
     def usb_event_get_attached_devices(self):
         pass
+    
     def usb_event_get_key_from_handle(self):
         pass
+    
     def usb_event_init(self):
         pass
+    
     def usb_event_remove_key(self):
         pass
+    
     def usb_get_ascii(self):
         pass
+    
     def usb_get_ascii_by_deviceID(self):
         pass
+    
     def usb_get_device_info(self):
         pass
+    
     def usb_get_model_serial_keys(self):
         pass
+    
     def usb_init_system(self):
         err = self._lib.newp_usb_init_system()
         self._handle_error(err)
+        
     def usb_init_product(self,productID: int):
         productID = c_int32(productID)
         err = self._lib.newp_usb_init_product(byref(productID))
         self._handle_error(err)
+        
     def usb_open_devices(self,productID: int,UseUSBAddress: bool):
         productID = c_int32(productID)
         useUSBAddress = c_bool(UseUSBAddress)
         nNumDevices = POINTER(c_int32)()
         err = self._lib.newp_usb_open_devices(byref(productID),byref(useUSBAddress),byref(nNumDevices))
         self._handle_error(err)
+        
     def usb_read_ascii_by_key(self):
         pass
+    
     def usb_read_by_key(self):
         pass
-    def usb_send_ascii(self):
-        pass
-    def usb_send_binary(self):
-        pass
+    
+    def usb_send_ascii(self,deviceID: int, command: str):
+        length = len(command)+1 #have to take into account the carriage return
+        deviceID = c_int32(deviceID)
+        command = c_wchar_p(command)
+        length = c_ulong(length)
+        err = self._lib.newp_usb_send_ascii(byref(deviceID),byref(command),byref(length))
+        self._handle_error(err)
+        
+    def usb_send_binary(selfdeviceID: int, command: bytes):
+        length = len(command)+1 #have to take into account the carriage return
+        deviceID = c_int32(deviceID)
+        command = c_char_p(command)
+        err = self._lib.newp_usb_send_ascii(byref(deviceID),byref(command),byref(length))
+        self._handle_error(err)
+        
     def usb_uninit_system(self):
         err = self._lib.newp_usb_unint_system()
         self._handle_error(err)
+        
     def usb_write_binary_by_key(self):
         pass
+    
     def usb_write_by_key(self):
         pass
     
