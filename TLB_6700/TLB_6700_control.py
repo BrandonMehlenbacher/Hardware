@@ -300,26 +300,29 @@ class TLB_6700_controller(object):
              print("there was an error that occurred, please implement a better error system later")
              
     def get_instrument_list(self):
-        arInstruments = POINTER(c_int32)()
-        arInstrumentsModel = POINTER(c_int32)()
-        arInstrumentsSN = POINTER(c_int32)()
-        nArraySize = POINTER(c_int32)()
-        value = self._lib.GetInstrumentList(byref(arInstruments),byref(arInstrumentsModel),byref(arInstrumentsSN),byref(nArraySize))
+        arInstruments = create_string_buffer(128)
+        arInstrumentsModel = create_string_buffer(128)
+        arInstrumentsSN = create_string_buffer(128)
+        nArraySize = create_string_buffer(128)
+        value = self._lib.GetInstrumentList(arInstruments,arInstrumentsModel,arInstrumentsSN,nArraySize)
+        string = self._read_data(arInstrumentsSN.value)
+        print(string)
         self._handle_error(value)
         return None
         
     def usb_get_device_count(self):
         pass
     
-    def usb_get_devive_key_from_device_id(self):
-        pass
+    def usb_get_device_key_from_device_id(self, deviceID: int):
+        deviceID = c_int32()
     
-    def usb_dget_device_keys(self):
+    def usb_get_device_keys(self):
         pass
     
     def usb_get_os_name(self):
         buffer  = create_string_buffer(64)
-        err = self._lib.newp_usb_GetOsName(buffer)
+        err = self._lib.newp_usb_GetOSName(buffer)
+        print(self._read_data(buffer.value))
         self._handle_error(err)
         
     def usb_set_logging(self, logging: bool):
@@ -336,7 +339,10 @@ class TLB_6700_controller(object):
         pass
     
     def usb_event_get_attached_devices(self):
-        pass
+        buffer  = create_string_buffer(1024)
+        pDeviceHandles = create_string_buffer(1024)
+        self._lib.newp_usb_event_get_attached_devices(byref(buffer),pDeviceHandles)
+        print(self._read_data(buffer.value))
     
     def usb_event_get_key_from_handle(self):
         pass
@@ -347,14 +353,21 @@ class TLB_6700_controller(object):
     def usb_event_remove_key(self):
         pass
     
-    def usb_get_ascii(self):
-        pass
+    def usb_get_ascii(self,deviceID):
+        deviceID = c_int32(deviceID)
+        buffer = create_string_buffer(64)
+        length = c_ulong()
+        self._lib.newp_usb_get_ascii()
     
     def usb_get_ascii_by_deviceID(self):
         pass
     
     def usb_get_device_info(self):
-        pass
+        buffer = create_string_buffer(64)
+        err = self._lib.newp_usb_get_device_info(buffer)
+        self._handle_error(err)
+        string = self._read_data(buffer.value)
+        print(string)
     
     def usb_get_model_serial_keys(self):
         pass
@@ -375,8 +388,14 @@ class TLB_6700_controller(object):
         err = self._lib.newp_usb_open_devices(byref(productID),byref(useUSBAddress),byref(nNumDevices))
         self._handle_error(err)
         
-    def usb_read_ascii_by_key(self):
-        pass
+    def usb_read_ascii_by_deviceID(self, deviceID: int, length: int):
+        deviceID = c_int32(deviceID)
+        buffer = create_string_buffer(1024)
+        length = c_ulong(length)
+        bytesRead = POINTER(c_ulong)()
+        err = self._lib.newp_usb_get_ascii(deviceID, buffer ,byref(length) ,bytesRead)
+        print(self._read_data(buffer))
+        self._handle_error(err)        
     
     def usb_read_by_key(self):
         pass
@@ -386,8 +405,9 @@ class TLB_6700_controller(object):
         deviceID = c_int32(deviceID)
         command = c_wchar_p(command)
         length = c_ulong(length)
-        err = self._lib.newp_usb_send_ascii(byref(deviceID),byref(command),byref(length))
+        err = self._lib.newp_usb_send_ascii(deviceID,byref(command),byref(length))
         self._handle_error(err)
+        self.usb_read_ascii_by_deviceID(deviceID,length)
         
     def usb_send_binary(selfdeviceID: int, command: bytes):
         length = len(command)+1 #have to take into account the carriage return
@@ -397,7 +417,7 @@ class TLB_6700_controller(object):
         self._handle_error(err)
         
     def usb_uninit_system(self):
-        err = self._lib.newp_usb_unint_system()
+        err = self._lib.newp_usb_uninit_system()
         self._handle_error(err)
         
     def usb_write_binary_by_key(self):
@@ -405,9 +425,17 @@ class TLB_6700_controller(object):
     
     def usb_write_by_key(self):
         pass
-    
+
+    def _read_data(self,data: bytes):
+        return ("".join(list(map(chr,list(data))))).split(";") 
         
 
 if __name__ == '__main__':
     laser = TLB_6700_controller("SN41044")
+    laser.usb_get_device_info()
+    laser.usb_get_os_name()
+    #laser.usb_event_get_attached_devices()
+    laser.usb_send_ascii(0,"'*IDN?\n")
+    #laser.usb_read_ascii_by_deviceID(0,
+    #laser.usb_uninit_system()
     
