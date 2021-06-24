@@ -653,7 +653,7 @@ class Ui_CavityLengthScan(object):
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
-            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
