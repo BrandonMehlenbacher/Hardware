@@ -610,8 +610,9 @@ class Ui_CavityLengthScan(object):
                 self.currentTime += 1/self.frequency.value()
                 self.timedList.append(self.currentTime)
             else:
-                self.timedList.append(self.laser.get_wavelength())
-                self.displayWavelength.display(self.laser.get_wavelength())
+                wavelength = self.laser.get_wavelength()
+                self.timedList.append(wavelength)
+                self.displayWavelength.display(wavelength)
             self.timedValues.append(sum(self._values)/len(self._values))
             self.apd_graph.plot(self.timedList,self.timedValues)
             if self.wavelengthScan:
