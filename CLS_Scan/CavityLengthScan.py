@@ -22,7 +22,8 @@ from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be 
 from FFPC_Programs.initialValues import initializeValues
 #from signalOutput import signalOutput, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
-from TLB_6700.TLB_6700_control import TLB_6700_controller
+#from TLB_6700.TLB_6700_control import TLB_6700_controller
+import yaqc
 
 import numpy as np
 from statistics import mean
@@ -40,8 +41,9 @@ class Ui_CavityLengthScan(object):
 
     
     """
-    def __init__(self):
+    def __init__(self, laserhost="127.0.0.1"):
         # whenever you want to track a new value, add the name to the end of this list
+        self.laserhost = laserhost
         names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
         self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
@@ -616,8 +618,8 @@ class Ui_CavityLengthScan(object):
             self.timedValues.append(sum(self._values)/len(self._values))
             self.apd_graph.plot(self.timedList,self.timedValues)
             if self.wavelengthScan:
-                
-                if self.laser.get_actual_number_scans() == self.numberOfScans.value():
+                numberScans = int(self.laser.query('SOUR:WAVE:ACTSCANS?\n'))
+                if numberScans == self.numberOfScans.value():
                     #self.stop_scan()
                     self.save_values()
                     self.timedOrContinuous.setChecked(False)
@@ -625,7 +627,7 @@ class Ui_CavityLengthScan(object):
                     self.timedList = []
                     self.timedValues = []
                     self.currentScan=1
-                elif self.currentScan == self.laser.get_actual_number_scans():
+                elif self.currentScan == numberScans:
                     self.save_values()
                     self.timedList = []
                     self.timedValues = []
@@ -689,9 +691,10 @@ class Ui_CavityLengthScan(object):
                       self.offset.value(),
                       ]
         self.values.saveValues(listValues)
+        
     def qFactor(self):
         if self._active:
-            correction = int(1000000/self.funcGenFrequency.value())
+            correction = 1000000//self.funcGenFrequency.value()
             originalXValues = (120.5/correction)*np.array(range(correction))
             #self.apd_graph.clear()
             #self._values = self._apd.read_values()
@@ -717,14 +720,14 @@ class Ui_CavityLengthScan(object):
 
     def connect_to_laser(self):
         if self.controlLaser.isChecked():
-            self.laser = TLB_6700_controller("SN41044")
+            self.laser = yaqc.Client(host=self.laserhost,port=39000)
             self.displayWavelength.display(self.laser.get_wavelength())
             self.switch_between_power_current()
         else:
-            if self.laser != None:
-                self.laser.close_devices()
+            self.laser  = None
 
     def switch_between_power_current(self):
+        """
         if self.laser.get_output_state_laser():
             self.laser.output_state_laser(0)
             self.laserStatus.setChecked(False)
@@ -736,6 +739,7 @@ class Ui_CavityLengthScan(object):
             self.laser.change_mode_laser_power(0)
             self.displayCurrent.display(self.laser.get_current_diode())
             self.displayPower.display(0)
+        """
             
     def change_laser_power_or_current(self):
         if self.powerOrCurrent.isChecked():
@@ -748,47 +752,46 @@ class Ui_CavityLengthScan(object):
     
     def change_laser_state(self):
         if self.laserStatus.isChecked():
-            self.laser.output_state_laser(1)
+            self.laser.set_position(1)
             time.sleep(2)
         else:
-            self.laser.output_state_laser(0)
+            self.laser.set_position(0)
             time.sleep(0.1)
 
     def change_laser_wavelength(self):
         #if self.laser.operation_completed():
         if not self.wavelengthScan:
-            if not self.laser.check_lambda_track():
-                self.laser.change_state_lambda_track_on()
-            self.laser.change_wavelength(self.setWavelength.value())
+            #if not self.laser.check_lambda_track():
+            self.laser.set_wavelength(self.setWavelength.value())
             self.displayWavelength.display(self.laser.get_wavelength())
             time.sleep(0.1)
         
     def change_number_scans(self):
-        self.laser.change_number_scans(self.numberOfScans.value())
+        self.laser.query(f'SOUR:WAVE:DESSCANS {self.numberOfScans.value()}\n')
         time.sleep(0.1)
         
     def change_start_scan_wavelength(self):
-        self.laser.change_start_scan_wavelength(self.setStartWavelengthScan.value())
+        self.laser.query(f'SOUR:WAVE:START {self.setStartWavelengthScan.value()}\n')
         time.sleep(0.1)
 
     def change_velocity_scan(self):
-        self.laser.change_velocity_wavelength_change_forward(self.scanSpeed.value())
-        self.laser.change_velocity_wavelength_change_reverse(self.scanSpeed.value())
+        self.laser.query(f'SOUR:WAVE:SLEW:FORW {self.scanSpeed.value()}\n')
+        self.laser.query(f'SOUR:WAVE:SLEW:RET {self.scanSpeed.value()}\n')
         time.sleep(0.1)
         
     def change_end_scan_wavelength(self):
-        self.laser.change_end_scan_wavelength(self.setEndWavelengthScan.value())
+        self.laser.query(f'SOUR:WAVE:STOP {self.setEndWavelengthScan.value()}\n')
         time.sleep(0.1)
         
     def start_scan(self):
         self.timedList = []
         self.timedValues = []
         self._timer.setInterval(300)
-        self.laser.change_state_lambda_track_on()
+        self.laser.query('OUTPUT:TRACK 1\n')
         self.timedOrContinuous.setChecked(True)
         self.timedOrContinuous.setEnabled(False)
         self.wavelengthScan = True
-        self.laser.start_scan()
+        self.laser.query(f'OUTP:SCAN:START\n')
 
     def stop_scan(self):
         self.timedList = []
@@ -798,14 +801,20 @@ class Ui_CavityLengthScan(object):
         self._timer.setInterval(time)
         self.timedOrContinuous.setEnabled(True)
         self.wavelengthScan = False
-        self.laser.end_scan()
+        self.laser.query(f'OUTP:SCAN:STOP\n')
+
+    def wait_until_done(self):
+        while not int(self.laser.query("*OPC?\n")):
+            pass 
         
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
+    #parser = argparse.ArgumentParser(description = "Takes in hosts ids")
+    #parser.add_argument("-lh","--laser-host", help = "Computer Laser is connected to", required = True,default = "127.0.0.1")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
-    ui = Ui_CavityLengthScan()
+    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu")
     ui.setupUi(CavityLengthScan)
     CavityLengthScan.show()
     sys.exit(app.exec_())
