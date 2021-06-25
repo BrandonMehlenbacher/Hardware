@@ -810,8 +810,8 @@ class Ui_CavityLengthScan(object):
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
-    #parser = argparse.ArgumentParser(description = "Takes in ROC and Mirror Diameter")
-    #parser.add_argument("-m","--mirror_diameter", help = "Input mirror diameter in microns", required = False,default = "100")
+    #parser = argparse.ArgumentParser(description = "Takes in hosts ids")
+    #parser.add_argument("-lh","--laser-host", help = "Computer Laser is connected to", required = True,default = "127.0.0.1")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
     ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu")
