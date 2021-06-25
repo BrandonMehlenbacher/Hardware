@@ -20,7 +20,7 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-#from signalOutput import signalOutput, workerOutput
+from signalOutput import signalOutput#, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
 #from TLB_6700.TLB_6700_control import TLB_6700_controller
 import yaqc
@@ -41,9 +41,10 @@ class Ui_CavityLengthScan(object):
 
     
     """
-    def __init__(self, laserhost="127.0.0.1"):
+    def __init__(self, laserhost="127.0.0.1",daqOutput = False):
         # whenever you want to track a new value, add the name to the end of this list
         self.laserhost = laserhost
+        self.daqOutput = daqOutput
         names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
         self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
@@ -418,13 +419,16 @@ class Ui_CavityLengthScan(object):
         # use the exact rigol we currently have
         
         self._rm = visa.ResourceManager()
-        try:
-            self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        except visa.errors.VisaIOError:
-            print("Make sure the function generator is turned on")
-            sys.exit()
+        if self.daqOutput:
+            self._func_gen = None #signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+        else:
+            try:
+                self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+                self._func_gen = FunctionGenerator(self._resource,"SOUR1")
+            except visa.errors.VisaIOError:
+                raise ValueError("Make sure the function generator is turned on")
+            
         self.laser = None
-        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None
@@ -446,12 +450,12 @@ class Ui_CavityLengthScan(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
-        self.funcGenSwitch.stateChanged.connect(self.func_generation)
-        self.scanSwitch.stateChanged.connect(self.func_generation)
-        self.funcGenFrequency.valueChanged.connect(self.func_generation)
-        self.amplitude.valueChanged.connect(self.func_generation)
-        self.phase.valueChanged.connect(self.func_generation)
-        self.offset.valueChanged.connect(self.func_generation)
+        self.funcGenSwitch.stateChanged.connect(self.waveform_output)
+        self.scanSwitch.stateChanged.connect(self.waveform_output)
+        self.funcGenFrequency.valueChanged.connect(self.waveform_output)
+        self.amplitude.valueChanged.connect(self.waveform_output)
+        self.phase.valueChanged.connect(self.waveform_output)
+        self.offset.valueChanged.connect(self.waveform_output)
         self.save.clicked.connect(self.save_values)
         self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
         
@@ -669,7 +673,28 @@ class Ui_CavityLengthScan(object):
         np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
-            
+
+    def waveform_output(self):
+        if self.daqOutput:
+            self.daq_output()
+        else:
+            self.func_generation()
+
+    def daq_output(self):
+        if self.funcGenSwitch.isChecked():
+            if self._func_gen == None:
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+            else:
+                self._func_gen.stop_acq()
+                self._func_gen.close_daq()
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+        else:
+            self._func_gen.stop_acq()
+            self._func_gen.close_daq()
+            self._func_gen = None
+
     def func_generation(self):
         self.saveNewValues()
         if self.funcGenSwitch.isChecked():
@@ -812,6 +837,7 @@ if __name__ == "__main__":
     import sys
     #parser = argparse.ArgumentParser(description = "Takes in hosts ids")
     #parser.add_argument("-lh","--laser-host", help = "Computer Laser is connected to", required = True,default = "127.0.0.1")
+    #parser.add_argument("-d","--daq-output", help = "Whether you are using daq output or not", required = True,default = "False")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
     ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu")
