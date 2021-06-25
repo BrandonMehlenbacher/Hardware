@@ -20,7 +20,7 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-from signalOutput import signalOutput#, workerOutput
+from signalOutput import signalOutputDAQ#, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
 #from TLB_6700.TLB_6700_control import TLB_6700_controller
 import yaqc
@@ -512,13 +512,13 @@ class Ui_CavityLengthScan(object):
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
         ___qlistwidgetitem9.setText(QCoreApplication.translate("CavityLengthScan", u"Brandon Mehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
-        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria", None));
+        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria Needham", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
-        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau", None));
+        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau Schweitzer", None));
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
-        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci", None));
+        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci Vollbrecht", None));
         ___qlistwidgetitem13 = self.whoAreYou.item(4)
-        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia", None));
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia Rasch", None));
         self.whoAreYou.setSortingEnabled(__sortingEnabled1)
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("CavityLengthScan", u"File Location Path", None))
@@ -556,10 +556,6 @@ class Ui_CavityLengthScan(object):
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
-        #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
-        #self.output = signalOutput("Dev1/ao0", 1000000,100)
-        #self.worker =  workerOutput(self.output)
-        #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
         self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
@@ -840,7 +836,7 @@ if __name__ == "__main__":
     #parser.add_argument("-d","--daq-output", help = "Whether you are using daq output or not", required = True,default = "False")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
-    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu")
+    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu",daqOutput=False)
     ui.setupUi(CavityLengthScan)
     CavityLengthScan.show()
     sys.exit(app.exec_())
