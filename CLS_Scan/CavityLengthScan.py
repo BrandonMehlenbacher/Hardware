@@ -20,7 +20,7 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-#from signalOutput import signalOutput, workerOutput
+from signalOutput import signalOutputDAQ#, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
 #from TLB_6700.TLB_6700_control import TLB_6700_controller
 import yaqc
@@ -41,9 +41,10 @@ class Ui_CavityLengthScan(object):
 
     
     """
-    def __init__(self, laserhost="127.0.0.1"):
+    def __init__(self, laserhost="127.0.0.1",daqOutput = False):
         # whenever you want to track a new value, add the name to the end of this list
         self.laserhost = laserhost
+        self.daqOutput = daqOutput
         names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
         self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
@@ -418,13 +419,16 @@ class Ui_CavityLengthScan(object):
         # use the exact rigol we currently have
         
         self._rm = visa.ResourceManager()
-        try:
-            self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        except visa.errors.VisaIOError:
-            print("Make sure the function generator is turned on")
-            sys.exit()
+        if self.daqOutput:
+            self._func_gen = None #signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+        else:
+            try:
+                self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+                self._func_gen = FunctionGenerator(self._resource,"SOUR1")
+            except visa.errors.VisaIOError:
+                raise ValueError("Make sure the function generator is turned on")
+            
         self.laser = None
-        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None
@@ -446,12 +450,12 @@ class Ui_CavityLengthScan(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
-        self.funcGenSwitch.stateChanged.connect(self.func_generation)
-        self.scanSwitch.stateChanged.connect(self.func_generation)
-        self.funcGenFrequency.valueChanged.connect(self.func_generation)
-        self.amplitude.valueChanged.connect(self.func_generation)
-        self.phase.valueChanged.connect(self.func_generation)
-        self.offset.valueChanged.connect(self.func_generation)
+        self.funcGenSwitch.stateChanged.connect(self.waveform_output)
+        self.scanSwitch.stateChanged.connect(self.waveform_output)
+        self.funcGenFrequency.valueChanged.connect(self.waveform_output)
+        self.amplitude.valueChanged.connect(self.waveform_output)
+        self.phase.valueChanged.connect(self.waveform_output)
+        self.offset.valueChanged.connect(self.waveform_output)
         self.save.clicked.connect(self.save_values)
         self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
         
@@ -508,13 +512,13 @@ class Ui_CavityLengthScan(object):
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
         ___qlistwidgetitem9.setText(QCoreApplication.translate("CavityLengthScan", u"Brandon Mehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
-        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria", None));
+        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria Needham", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
-        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau", None));
+        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau Schweitzer", None));
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
-        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci", None));
+        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci Vollbrecht", None));
         ___qlistwidgetitem13 = self.whoAreYou.item(4)
-        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia", None));
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia Rasch", None));
         self.whoAreYou.setSortingEnabled(__sortingEnabled1)
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("CavityLengthScan", u"File Location Path", None))
@@ -552,10 +556,6 @@ class Ui_CavityLengthScan(object):
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
-        #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
-        #self.output = signalOutput("Dev1/ao0", 1000000,100)
-        #self.worker =  workerOutput(self.output)
-        #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
         self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
@@ -656,7 +656,7 @@ class Ui_CavityLengthScan(object):
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
-            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
             directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
@@ -669,7 +669,28 @@ class Ui_CavityLengthScan(object):
         np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
-            
+
+    def waveform_output(self):
+        if self.daqOutput:
+            self.daq_output()
+        else:
+            self.func_generation()
+
+    def daq_output(self):
+        if self.funcGenSwitch.isChecked():
+            if self._func_gen == None:
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+            else:
+                self._func_gen.stop_acq()
+                self._func_gen.close_daq()
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+        else:
+            self._func_gen.stop_acq()
+            self._func_gen.close_daq()
+            self._func_gen = None
+
     def func_generation(self):
         self.saveNewValues()
         if self.funcGenSwitch.isChecked():
@@ -812,9 +833,10 @@ if __name__ == "__main__":
     import sys
     #parser = argparse.ArgumentParser(description = "Takes in hosts ids")
     #parser.add_argument("-lh","--laser-host", help = "Computer Laser is connected to", required = True,default = "127.0.0.1")
+    #parser.add_argument("-d","--daq-output", help = "Whether you are using daq output or not", required = True,default = "False")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
-    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu")
+    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu",daqOutput=False)
     ui.setupUi(CavityLengthScan)
     CavityLengthScan.show()
     sys.exit(app.exec_())

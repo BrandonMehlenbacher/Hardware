@@ -22,6 +22,8 @@ class signalOutputDAQ:
         self.writer.write_many_sample(self.samples)
     def stop_acq(self):
         self.outputTask.stop()
+    def close_daq(self):
+        self.outputTask.close()
     def signal_type(self,value):
         if value == 0:
             return self.sawtooth_signal
