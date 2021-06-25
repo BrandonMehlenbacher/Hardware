@@ -470,7 +470,11 @@ class Ui_CavityLengthScan(object):
         self.powerOrCurrent.stateChanged.connect(self.switch_between_power_current)
         self.numberOfScans.valueChanged.connect(self.change_number_scans)
         self.scanSpeed.valueChanged.connect(self.change_velocity_scan)
-        
+
+        self.whoAreYou.currentItemChanged.connect(self.directory_change)
+        self.folderName.textChanged.connect(self.directory_change)
+        self.cavityName.textChanged.connect(self.directory_change)
+        self.comments.textChanged.connect(self.directory_change)
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
         self.start.setText(QCoreApplication.translate("CavityLengthScan", u"Start", None))
@@ -657,7 +661,7 @@ class Ui_CavityLengthScan(object):
             self.fileLocationPath.setPlainText(self._filename)
         else:
             current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
-            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         if self.timedOrContinuous.isChecked():
@@ -666,10 +670,16 @@ class Ui_CavityLengthScan(object):
             saveValues = np.array(self._values)
         if not os.path.isdir(directory):
             os.makedirs(directory)
+        while os.path.isfile(self._filename):
+            self._filename = directory+'/'+self.comments.toPlainText()+f"_{self._traceNum}.csv"
+            self._traceNum +=1
         np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
-
+            
+    def directory_change(self):
+        self._traceNum = 0
+        
     def waveform_output(self):
         if self.daqOutput:
             self.daq_output()
