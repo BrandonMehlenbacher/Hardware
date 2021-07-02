@@ -681,6 +681,7 @@ class Ui_CavityLengthScan(object):
         self._traceNum = 0
         
     def waveform_output(self):
+        self.saveNewValues()
         if self.daqOutput:
             self.daq_output()
         else:
