@@ -703,7 +703,6 @@ class Ui_CavityLengthScan(object):
             self._func_gen = None
 
     def func_generation(self):
-        self.saveNewValues()
         if self.funcGenSwitch.isChecked():
             if self.scanSwitch.isChecked():
                 self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
