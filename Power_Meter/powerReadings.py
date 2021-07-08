@@ -9,7 +9,7 @@ from datetime import datetime
 import os
 import pyqtgraph as pg
 import click
-
+import yaqc
 
 def printResources(resourceManager):
     for  resource in resourceManager.list_resources():
@@ -30,7 +30,7 @@ class PowerMeter:
     timeSpacing: the distance between each point collected
 
     """
-    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1):
+    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 2):
         assert timeSpacing > 0.001, "We can only read the data points so fast, be patient"
         self.resource = ThorlabsPM100(inst=resource)
         self.averageTime = averagingTime 
@@ -38,8 +38,41 @@ class PowerMeter:
             self.duration = 100000000
         else:
             self.duration = duration
-        self.timeSpacing = 0.1 #how fast to collect the data
-        self.valuesArray = np.zeros(shape = (2,int(self.duration/self.averageTime)+1))
+        self.timeSpacing = timeSpacing #how fast to collect the data
+        self.valuesArray = np.zeros(shape = (numberOfDimensions,int(self.duration/self.averageTime)+1))
+        
+    def run(self,filename):
+        """
+        Starts the acquisition sequence, creates a plot and automatically updates it as more data is collected
+        """
+        pass
+    
+    def save(self,filename="data"):
+        directory = str(datetime.now().date())
+        new_trace = 1
+        if self.duration > 10000000:
+            print("I will not save this to a csv, I doubt it could handle that many values, also numpy is struggling to make that big of an array")
+            return
+        if not os.path.isdir(directory):
+                os.makedirs(directory)
+        new_file_description = directory+"/"+filename
+        new_file = new_file_description
+        while os.path.isfile(new_file+".csv"):
+            new_file = new_file_description+f"_{new_trace}"
+            new_trace +=1
+        np.savetxt(new_file+".csv", self.valuesArray.transpose(),delimiter = ',')
+        if plt.fignum_exists(1):
+            plt.close()
+
+class MonitorLaser(PowerMeter):
+    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 4):
+        super().__init__(resource,duration='Endless',averagingTime = 1,timeSpacing=timeSpacing,numberOfDimensions = numberOfDimensions)
+    def run(self,filename):
+        pass
+
+class MonitorPowerFluctuations(PowerMeter):
+    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 2):
+        super().__init__(resource,duration=duration, averagingTime = averagingTime, timeSpacing=timeSpacing ,numberOfDimensions = numberOfDimensions)
     def run(self,filename):
         """
         Starts the acquisition sequence, creates a plot and automatically updates it as more data is collected
@@ -59,7 +92,7 @@ class PowerMeter:
                 # the third should only ever be active at the first iteration
                 # the reasoning behind this is the else statement will operate the fewest number of times improving overall efficiency
                 # I also hate counter variables soooooo yeah
-                if len(avgReading) == int(1/self.timeSpacing):
+                if len(avgReading) == int(self.averageTime/self.timeSpacing):
                     currentTime += self.averageTime
                     avgValue = sum(avgReading)/len(avgReading)
                     self.valuesArray[0,arrayCounter] = currentTime
@@ -73,6 +106,7 @@ class PowerMeter:
                 else:
                     self.valuesArray[0,arrayCounter] = currentTime
                     self.valuesArray[1,arrayCounter] = currentValue*1000 # changes the units to mW
+                    #self.valuesArray[1,arrayCounter] = 
                     plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
                     plt.pause(self.timeSpacing)
                     arrayCounter +=1
@@ -83,29 +117,13 @@ class PowerMeter:
                 sys.exit()
                 break
         self.save(filename)
-    def save(self,filename="data"):
-        directory = str(datetime.now().date())
-        new_trace = 1
-        if self.duration > 10000000:
-            print("I will not save this to a csv, I doubt it could handle that many values, also numpy is struggling to make that big of an array")
-            return
-        if not os.path.isdir(directory):
-                os.makedirs(directory)
-        new_file_description = directory+"/"+filename
-        new_file = new_file_description
-        while os.path.isfile(new_file+".csv"):
-            new_file = new_file_description+f"_{new_trace}"
-            new_trace +=1
-        np.savetxt(new_file+".csv", self.valuesArray.transpose(),delimiter = ',')
-        if plt.fignum_exists(1):
-            plt.close()
-
 if __name__ == "__main__":
     rm = visa.ResourceManager()
     #printResources(rm)
+    
     resource = rm.open_resource('USB0::0x1313::0x8078::P0021183::INSTR')
     timeDesired = int(input("Input the time you want to measure the power for, can be terminated in the middle: "))
-    powerMeter = PowerMeter(resource, timeDesired)
+    powerMeter = MonitorPowerFluctuations(resource, timeDesired,averagingTime=5)
     defaultFileName = click.prompt("Enter file name",type=str,default = "power780LaserHead_afterPolarizer")
     filename = f"{defaultFileName}_{timeDesired}s"
     powerMeter.run(filename)
