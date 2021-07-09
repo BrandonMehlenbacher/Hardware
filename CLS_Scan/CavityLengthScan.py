@@ -20,9 +20,10 @@ from APD_Control.Thorlabs_APD import APD_Reader
 from Miscellaneous.functionGenerator import FunctionGenerator
 from FFPC_Programs.cavityCalculations import fittingCavityLength # this will be incorporated in the near future when we can actually work on cavity length scans
 from FFPC_Programs.initialValues import initializeValues
-#from signalOutput import signalOutput, workerOutput
+from signalOutput import signalOutputDAQ#, workerOutput
 from FFPC_Programs.cavityCalculations import QFactor
-from TLB_6700.TLB_6700_control import TLB_6700_controller
+#from TLB_6700.TLB_6700_control import TLB_6700_controller
+import yaqc
 
 import numpy as np
 from statistics import mean
@@ -40,8 +41,10 @@ class Ui_CavityLengthScan(object):
 
     
     """
-    def __init__(self):
+    def __init__(self, laserhost="127.0.0.1",daqOutput = False):
         # whenever you want to track a new value, add the name to the end of this list
+        self.laserhost = laserhost
+        self.daqOutput = daqOutput
         names = ['frequency','minVoltage','maxVoltage','amplitude','funcGenFrequency','phase','offset']
         self.values = initializeValues(names)
     def setupUi(self, CavityLengthScan):
@@ -416,13 +419,16 @@ class Ui_CavityLengthScan(object):
         # use the exact rigol we currently have
         
         self._rm = visa.ResourceManager()
-        try:
-            self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
-        except visa.errors.VisaIOError:
-            print("Make sure the function generator is turned on")
-            sys.exit()
+        if self.daqOutput:
+            self._func_gen = None #signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+        else:
+            try:
+                self._resource = self._rm.open_resource('USB0::0x1AB1::0x04CE::DS1ZD212800749::INSTR',timeout=1)
+                self._func_gen = FunctionGenerator(self._resource,"SOUR1")
+            except visa.errors.VisaIOError:
+                raise ValueError("Make sure the function generator is turned on")
+            
         self.laser = None
-        self._func_gen = FunctionGenerator(self._resource,"SOUR1")
         self.start.setEnabled(True)
         self.stop.setEnabled(False)
         self._timer = None
@@ -444,12 +450,12 @@ class Ui_CavityLengthScan(object):
         self.daqList.currentItemChanged.connect(self.change_value)
         self.maxVoltage.valueChanged.connect(self.change_value)
         self.minVoltage.valueChanged.connect(self.change_value)
-        self.funcGenSwitch.stateChanged.connect(self.func_generation)
-        self.scanSwitch.stateChanged.connect(self.func_generation)
-        self.funcGenFrequency.valueChanged.connect(self.func_generation)
-        self.amplitude.valueChanged.connect(self.func_generation)
-        self.phase.valueChanged.connect(self.func_generation)
-        self.offset.valueChanged.connect(self.func_generation)
+        self.funcGenSwitch.stateChanged.connect(self.waveform_output)
+        self.scanSwitch.stateChanged.connect(self.waveform_output)
+        self.funcGenFrequency.valueChanged.connect(self.waveform_output)
+        self.amplitude.valueChanged.connect(self.waveform_output)
+        self.phase.valueChanged.connect(self.waveform_output)
+        self.offset.valueChanged.connect(self.waveform_output)
         self.save.clicked.connect(self.save_values)
         self.calculateFinesse.clicked.connect(self.qFactor_or_finesse)
         
@@ -464,7 +470,11 @@ class Ui_CavityLengthScan(object):
         self.powerOrCurrent.stateChanged.connect(self.switch_between_power_current)
         self.numberOfScans.valueChanged.connect(self.change_number_scans)
         self.scanSpeed.valueChanged.connect(self.change_velocity_scan)
-        
+
+        self.whoAreYou.currentItemChanged.connect(self.directory_change)
+        self.folderName.textChanged.connect(self.directory_change)
+        self.cavityName.textChanged.connect(self.directory_change)
+        self.comments.textChanged.connect(self.directory_change)
     def retranslateUi(self, apdMonitor):
         CavityLengthScan.setWindowTitle(QCoreApplication.translate("CavityLengthScan", u"MainWindow", None))
         self.start.setText(QCoreApplication.translate("CavityLengthScan", u"Start", None))
@@ -506,13 +516,13 @@ class Ui_CavityLengthScan(object):
         ___qlistwidgetitem9 = self.whoAreYou.item(0)
         ___qlistwidgetitem9.setText(QCoreApplication.translate("CavityLengthScan", u"Brandon Mehlenbacher", None));
         ___qlistwidgetitem10 = self.whoAreYou.item(1)
-        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria", None));
+        ___qlistwidgetitem10.setText(QCoreApplication.translate("CavityLengthScan", u"Lisa-Maria Needham", None));
         ___qlistwidgetitem11 = self.whoAreYou.item(2)
-        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau", None));
+        ___qlistwidgetitem11.setText(QCoreApplication.translate("CavityLengthScan", u"Beau Schweitzer", None));
         ___qlistwidgetitem12 = self.whoAreYou.item(3)
-        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci", None));
+        ___qlistwidgetitem12.setText(QCoreApplication.translate("CavityLengthScan", u"Ceci Vollbrecht", None));
         ___qlistwidgetitem13 = self.whoAreYou.item(4)
-        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia", None));
+        ___qlistwidgetitem13.setText(QCoreApplication.translate("CavityLengthScan", u"Julia Rasch", None));
         self.whoAreYou.setSortingEnabled(__sortingEnabled1)
 
         self.labelFileLocationPath.setText(QCoreApplication.translate("CavityLengthScan", u"File Location Path", None))
@@ -550,10 +560,6 @@ class Ui_CavityLengthScan(object):
     #function for starting the acquisition 
     def start_acq(self):
         print(self.daqList.currentItem().text())
-        #in case we want to use the DAQ as the output, needs work before it will be able to be implemented, currently gets stuck in an infinite loop
-        #self.output = signalOutput("Dev1/ao0", 1000000,100)
-        #self.worker =  workerOutput(self.output)
-        #self.worker.start()
         self._timer = QTimer()
         time = (1/self.frequency.value())*1000
         self._apd = APD_Reader(self.daqList.currentItem().text(),int(self.resolution/(self.frequency.value())),max_val = self.maxVoltage.value(),min_val = self.minVoltage.value(),continuous = False)
@@ -610,13 +616,14 @@ class Ui_CavityLengthScan(object):
                 self.currentTime += 1/self.frequency.value()
                 self.timedList.append(self.currentTime)
             else:
-                self.timedList.append(self.laser.get_wavelength())
-                self.displayWavelength.display(self.laser.get_wavelength())
+                wavelength = self.laser.get_wavelength()
+                self.timedList.append(wavelength)
+                self.displayWavelength.display(wavelength)
             self.timedValues.append(sum(self._values)/len(self._values))
             self.apd_graph.plot(self.timedList,self.timedValues)
             if self.wavelengthScan:
-                
-                if self.laser.get_actual_number_scans() == self.numberOfScans.value():
+                numberScans = int(self.laser.query('SOUR:WAVE:ACTSCANS?\n'))
+                if numberScans == self.numberOfScans.value():
                     #self.stop_scan()
                     self.save_values()
                     self.timedOrContinuous.setChecked(False)
@@ -624,7 +631,7 @@ class Ui_CavityLengthScan(object):
                     self.timedList = []
                     self.timedValues = []
                     self.currentScan=1
-                elif self.currentScan == self.laser.get_actual_number_scans():
+                elif self.currentScan == numberScans:
                     self.save_values()
                     self.timedList = []
                     self.timedValues = []
@@ -653,8 +660,8 @@ class Ui_CavityLengthScan(object):
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         else:
-            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/ELN_Data"
-            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()
+            current_directory = "//marlin.chem.wisc.edu/Groups/Goldsmith Group/X/dataBackup/Data/ELN_Data"
+            directory = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()
             self._filename = current_directory+"/"+self.whoAreYou.currentItem().text()+"/"+self.folderName.toPlainText()+"/"+str(self._today)+"/"+self.cavityName.toPlainText()+"/"+self.comments.toPlainText()+f"_{self._traceNum}.csv"
             self.fileLocationPath.setPlainText(self._filename)
         if self.timedOrContinuous.isChecked():
@@ -663,12 +670,39 @@ class Ui_CavityLengthScan(object):
             saveValues = np.array(self._values)
         if not os.path.isdir(directory):
             os.makedirs(directory)
+        while os.path.isfile(self._filename):
+            self._filename = directory+'/'+self.comments.toPlainText()+f"_{self._traceNum}.csv"
+            self._traceNum +=1
         np.savetxt(self._filename,saveValues,delimiter=',')
         if stopped:
             self.start_acq()
             
-    def func_generation(self):
+    def directory_change(self):
+        self._traceNum = 0
+        
+    def waveform_output(self):
         self.saveNewValues()
+        if self.daqOutput:
+            self.daq_output()
+        else:
+            self.func_generation()
+
+    def daq_output(self):
+        if self.funcGenSwitch.isChecked():
+            if self._func_gen == None:
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+            else:
+                self._func_gen.stop_acq()
+                self._func_gen.close_daq()
+                self._func_gen = signalOutputDAQ("Dev1/ao0", 1000000,frequency = self.funcGenFrequency.value(),amplitude = self.amplitude.value(),offset=self.offset.value())
+                self._func_gen.start_acq()
+        else:
+            self._func_gen.stop_acq()
+            self._func_gen.close_daq()
+            self._func_gen = None
+
+    def func_generation(self):
         if self.funcGenSwitch.isChecked():
             if self.scanSwitch.isChecked():
                 self._func_gen.write_many(['FUNC:SHAP RAMP','VOLT:UNIT VPP',f"FREQ {self.funcGenFrequency.value()}",f"VOLT {self.amplitude.value()}",f"VOLT:OFFS {self.offset.value()}",f"PHAS {self.phase.value()}",'FUNC:RAMP:SYMM 50'])
@@ -688,9 +722,10 @@ class Ui_CavityLengthScan(object):
                       self.offset.value(),
                       ]
         self.values.saveValues(listValues)
+        
     def qFactor(self):
         if self._active:
-            correction = int(1000000/self.funcGenFrequency.value())
+            correction = 1000000//self.funcGenFrequency.value()
             originalXValues = (120.5/correction)*np.array(range(correction))
             #self.apd_graph.clear()
             #self._values = self._apd.read_values()
@@ -716,14 +751,14 @@ class Ui_CavityLengthScan(object):
 
     def connect_to_laser(self):
         if self.controlLaser.isChecked():
-            self.laser = TLB_6700_controller("SN41044")
+            self.laser = yaqc.Client(host=self.laserhost,port=39000)
             self.displayWavelength.display(self.laser.get_wavelength())
             self.switch_between_power_current()
         else:
-            if self.laser != None:
-                self.laser.close_devices()
+            self.laser  = None
 
     def switch_between_power_current(self):
+        """
         if self.laser.get_output_state_laser():
             self.laser.output_state_laser(0)
             self.laserStatus.setChecked(False)
@@ -735,6 +770,7 @@ class Ui_CavityLengthScan(object):
             self.laser.change_mode_laser_power(0)
             self.displayCurrent.display(self.laser.get_current_diode())
             self.displayPower.display(0)
+        """
             
     def change_laser_power_or_current(self):
         if self.powerOrCurrent.isChecked():
@@ -747,47 +783,46 @@ class Ui_CavityLengthScan(object):
     
     def change_laser_state(self):
         if self.laserStatus.isChecked():
-            self.laser.output_state_laser(1)
+            self.laser.set_position(1)
             time.sleep(2)
         else:
-            self.laser.output_state_laser(0)
+            self.laser.set_position(0)
             time.sleep(0.1)
 
     def change_laser_wavelength(self):
         #if self.laser.operation_completed():
         if not self.wavelengthScan:
-            if not self.laser.check_lambda_track():
-                self.laser.change_state_lambda_track_on()
-            self.laser.change_wavelength(self.setWavelength.value())
+            #if not self.laser.check_lambda_track():
+            self.laser.set_wavelength(self.setWavelength.value())
             self.displayWavelength.display(self.laser.get_wavelength())
             time.sleep(0.1)
         
     def change_number_scans(self):
-        self.laser.change_number_scans(self.numberOfScans.value())
+        self.laser.query(f'SOUR:WAVE:DESSCANS {self.numberOfScans.value()}\n')
         time.sleep(0.1)
         
     def change_start_scan_wavelength(self):
-        self.laser.change_start_scan_wavelength(self.setStartWavelengthScan.value())
+        self.laser.query(f'SOUR:WAVE:START {self.setStartWavelengthScan.value()}\n')
         time.sleep(0.1)
 
     def change_velocity_scan(self):
-        self.laser.change_velocity_wavelength_change_forward(self.scanSpeed.value())
-        self.laser.change_velocity_wavelength_change_reverse(self.scanSpeed.value())
+        self.laser.query(f'SOUR:WAVE:SLEW:FORW {self.scanSpeed.value()}\n')
+        self.laser.query(f'SOUR:WAVE:SLEW:RET {self.scanSpeed.value()}\n')
         time.sleep(0.1)
         
     def change_end_scan_wavelength(self):
-        self.laser.change_end_scan_wavelength(self.setEndWavelengthScan.value())
+        self.laser.query(f'SOUR:WAVE:STOP {self.setEndWavelengthScan.value()}\n')
         time.sleep(0.1)
         
     def start_scan(self):
         self.timedList = []
         self.timedValues = []
         self._timer.setInterval(300)
-        self.laser.change_state_lambda_track_on()
+        self.laser.query('OUTPUT:TRACK 1\n')
         self.timedOrContinuous.setChecked(True)
         self.timedOrContinuous.setEnabled(False)
         self.wavelengthScan = True
-        self.laser.start_scan()
+        self.laser.query(f'OUTP:SCAN:START\n')
 
     def stop_scan(self):
         self.timedList = []
@@ -797,14 +832,21 @@ class Ui_CavityLengthScan(object):
         self._timer.setInterval(time)
         self.timedOrContinuous.setEnabled(True)
         self.wavelengthScan = False
-        self.laser.end_scan()
+        self.laser.query(f'OUTP:SCAN:STOP\n')
+
+    def wait_until_done(self):
+        while not int(self.laser.query("*OPC?\n")):
+            pass 
         
 #Feel free to copy and paste the line below in other GUIs you make, just make sure to change names within it
 if __name__ == "__main__":
     import sys
+    #parser = argparse.ArgumentParser(description = "Takes in hosts ids")
+    #parser.add_argument("-lh","--laser-host", help = "Computer Laser is connected to", required = True,default = "127.0.0.1")
+    #parser.add_argument("-d","--daq-output", help = "Whether you are using daq output or not", required = True,default = "False")
     app = QApplication(sys.argv)
     CavityLengthScan = QMainWindow()
-    ui = Ui_CavityLengthScan()
+    ui = Ui_CavityLengthScan(laserhost="scattering.chem.wisc.edu",daqOutput=False)
     ui.setupUi(CavityLengthScan)
     CavityLengthScan.show()
     sys.exit(app.exec_())
