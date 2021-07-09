@@ -12,12 +12,15 @@ import click
 import yaqc
 
 def printResources(resourceManager):
+    listResources = []
     for  resource in resourceManager.list_resources():
         try:
             #function came from instrumental documentation
             print(resource, '-->', rm.open_resource(resource).query('*IDN?').strip())
+            listResources.append(resource)
         except visa.VisaIOError:
             pass
+    return listResources
     
 class PowerMeter:
     """
@@ -65,10 +68,55 @@ class PowerMeter:
             plt.close()
 
 class MonitorLaser(PowerMeter):
-    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 4):
-        super().__init__(resource,duration='Endless',averagingTime = 1,timeSpacing=timeSpacing,numberOfDimensions = numberOfDimensions)
+    def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 4,self.laserHost = "photothermal-2.chem.wisc.edu"):
+        super().__init__(resource,duration=duration, averagingTime = averagingTime, timeSpacing=timeSpacing ,numberOfDimensions = numberOfDimensions)
+        self.laser = yaqc.Client(host=laserhost,port=39000)
     def run(self,filename):
-        pass
+        """
+        Starts the acquisition sequence, creates a plot and automatically updates it as more data is collected
+        """
+        avgReading = []
+        currentTime = 0
+        arrayCounter = 0
+        plt.xlabel("Time (s)")
+        plt.ylabel("Power (mW)")
+        while currentTime < self.duration:
+            try:
+                currentValue = self.resource.read
+                avgReading.append(currentValue)
+                # the if else statements below work as the following
+                # the first one checks to see if the length of AvgReading is 10 for 10 data points
+                # the second checks to see if we are at the first iteration
+                # the third should only ever be active at the first iteration
+                # the reasoning behind this is the else statement will operate the fewest number of times improving overall efficiency
+                # I also hate counter variables soooooo yeah
+                if len(avgReading) == int(self.averageTime/self.timeSpacing):
+                    currentTime += self.averageTime
+                    avgValue = sum(avgReading)/len(avgReading)
+                    self.valuesArray[0,arrayCounter] = currentTime
+                    self.valuesArray[1,arrayCounter] = avgValue*1000
+                    self.valuesArray[2,arrayCounter] = self.laser.query("SENSE:TEMP:CAVITY?") #this prevents us from pulling from the laser too quickly
+                    plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
+                    plt.pause(self.timeSpacing)
+                    self.valuesArray[3,arrayCounter] = self.laser.query("SENSE:TEMP:DIODE?")#this prevents us from pulling from the laser too quickly
+                    avgReading = []
+                    arrayCounter +=1
+                elif arrayCounter != 0:
+                    time.sleep(self.timeSpacing)
+                else:
+                    self.valuesArray[0,arrayCounter] = currentTime
+                    self.valuesArray[1,arrayCounter] = currentValue*1000 # changes the units to mW
+                    self.valuesArray[2,arrayCounter] = self.laser.query("SENSE:TEMP:CAVITY?")#this prevents us from pulling from the laser too quickly
+                    plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
+                    plt.pause(self.timeSpacing)
+                    self.valuesArray[3,arrayCounter] = self.laser.query("SENSE:TEMP:DIODE?")#this prevents us from pulling from the laser too quickly
+                    arrayCounter +=1
+            except KeyboardInterrupt:
+                plt.close()
+                self.valuesArray = self.valuesArray[:,:arrayCounter]
+                self.save(filename)
+                sys.exit()
+                break
 
 class MonitorPowerFluctuations(PowerMeter):
     def __init__(self,resource,duration='Endless',averagingTime = 1,timeSpacing=0.1,numberOfDimensions = 2):
@@ -106,7 +154,6 @@ class MonitorPowerFluctuations(PowerMeter):
                 else:
                     self.valuesArray[0,arrayCounter] = currentTime
                     self.valuesArray[1,arrayCounter] = currentValue*1000 # changes the units to mW
-                    #self.valuesArray[1,arrayCounter] = 
                     plt.plot(self.valuesArray[0,:arrayCounter],self.valuesArray[1,:arrayCounter],c='k')
                     plt.pause(self.timeSpacing)
                     arrayCounter +=1
@@ -119,11 +166,15 @@ class MonitorPowerFluctuations(PowerMeter):
         self.save(filename)
 if __name__ == "__main__":
     rm = visa.ResourceManager()
-    #printResources(rm)
-    
-    resource = rm.open_resource('USB0::0x1313::0x8078::P0021183::INSTR')
+    listUSB = printResources(rm)
+    whichResource  = int(input("Which device would you like to use (remember python starts at 0): "))
+    monitorLaser = False
+    resource = rm.open_resource(listUSB[whichResource])
     timeDesired = int(input("Input the time you want to measure the power for, can be terminated in the middle: "))
-    powerMeter = MonitorPowerFluctuations(resource, timeDesired,averagingTime=5)
+    if monitorLaser:
+        powerMeter = MonitorLaser(resource, timeDesired,averagingTime=5)
+    else:
+        powerMeter = MonitorPowerFluctuations(resource, timeDesired,averagingTime=5)
     defaultFileName = click.prompt("Enter file name",type=str,default = "power780LaserHead_afterPolarizer")
     filename = f"{defaultFileName}_{timeDesired}s"
     powerMeter.run(filename)
