@@ -508,7 +508,7 @@ class Ui_CavityLengthScan(object):
         self.labelFolderName.setText(QCoreApplication.translate("CavityLengthScan", u"Folder Name?", None))
         self.labelComments.setText(QCoreApplication.translate("CavityLengthScan", u"Comments?", None))
         self.labelCavityName.setText(QCoreApplication.translate("CavityLengthScan", u"Cavity Name?", None))
-        self.labelWhoAreYou.setText(QCoreApplication.translate("CavityLengthScan", u"Who Are you?", None))
+        self.labelWhoAreYou.setText(QCoreApplication.translate("CavityLengthScan", u"Who are you?", None))
         self.comments.setPlainText("")
 
         __sortingEnabled1 = self.whoAreYou.isSortingEnabled()
