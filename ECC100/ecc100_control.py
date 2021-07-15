@@ -278,7 +278,11 @@ class ECC100Control:
         """
         ret = self.lib.ECC_Close(self.dev_handle)
         self.handle_err(ret,func="Close")
-        
+
+class Motor(ECC100Control):
+    def __init__(self):
+        super.__init__()
+
 if __name__ == "__main__":
     ecc = ECC100Control()
     ecc.connect()
